@@ -1,0 +1,15 @@
+{
+  "adjectiveEnabled": true,
+  "adjectiveColor": "#bea77e",
+  "nounEnabled": false,
+  "nounColor": "#d09a9a",
+  "adverbEnabled": true,
+  "adverbColor": "#c898bd",
+  "verbEnabled": true,
+  "verbColor": "#92aebf",
+  "conjunctionEnabled": true,
+  "conjunctionColor": "#7a998b",
+  "classToApplyHighlightingTo": "",
+  "wordsToOverride": "",
+  "enabled": true
+}

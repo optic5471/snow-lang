@@ -1,0 +1,11 @@
+- [ ] Convert rune and string to be utf8 supported
+- [ ] Support `\uxxx` and `\Uxxxxxxxx` escape sequences as unicode characters taking hex values
+- [ ] Support `rune.Invalid` being set to the invalid UTF8 character
+- [ ] `rune.isAscii()` should return true if ascii
+- [ ] `rune.isValid()` should compare against the invalid UTF8 character
+- [ ] `rune.size()` should return if this is a 1, 2, or 4 byte character
+- [ ] `string.dataSize()` should return the number of bytes the string is
+- [ ] `string.isAscii()` should return true if ascii
+- [ ] `rune.postop [](index: u8): u8?` should return the byte value of the index. Supports 0-3 as input, and returns undefined if value doesnt have said byte
+- [ ] Ascii only string type
+- [ ] 
