@@ -39,12 +39,12 @@
                 "state": {
                   "type": "markdown",
                   "state": {
-                    "file": "Design/V0.0.5 - Threading and Closures.md",
+                    "file": "Design/V0.0.3 - Classes.md",
                     "mode": "source",
                     "source": false
                   },
                   "icon": "lucide-file",
-                  "title": "V0.0.5 - Threading and Closures"
+                  "title": "V0.0.3 - Classes"
                 }
               }
             ]
@@ -215,12 +215,12 @@
   },
   "active": "325b9b6d1706f549",
   "lastOpenFiles": [
-    "Design/V0.0.5 - Threading and Closures.md",
-    "Design/V0.0.1 - Functions and Variables.md",
     "Design/V0.0.3 - Classes.md",
     "Design/V0.0.32 - Interfaces.md",
-    "Design/V0.0.4 Unsafe and Memory Management.md",
+    "Design/V0.0.5 - Threading and Closures.md",
+    "Design/V0.0.1 - Functions and Variables.md",
     "Design/V0.0.2 - Better Functions and Generics.md",
+    "Design/V0.0.4 Unsafe and Memory Management.md",
     "Design/V0.0.31 - Enums.md",
     "Ticket Board.md",
     "Overview.md",
