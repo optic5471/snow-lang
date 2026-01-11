@@ -1,0 +1,21 @@
+These are things that need to still be implemented and grouped into versions but not finalized on when. These are leading up to 1.0 release:
+- Compiled code
+	- Compiled to assembly using LLVM
+- JIT code
+	- Compiles to an intermediary language which is agnostic to all platforms
+	- A runtime is used to run these kinds of apps which compiles the jit to assembly
+	- Might be a custom jit or use LLVM JIT
+- Restricted interpreter and the death of the current interpreter
+	- compiles as if running JIT code, but disallows many actions that would be considered unsafe
+	- attempts to conceal all hardware and memory from the program
+- Shared libraries/dll and libraries
+- Documentation comments / Standard library and language documentation and tutorial
+- Test suite in the compiler / language
+- C Linking
+	- How to build classes and function references to external C-based libraries
+	- Linking to the external libraries
+	- C types
+	- Passing pointers
+- Package statement
+	- exe, lib, dynlib, ri
+- 

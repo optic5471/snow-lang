@@ -6,6 +6,7 @@ kanban-plugin: board
 
 ## Backlog
 
+- [ ] Better Attributes
 - [ ] [[UTF8 Support]]
 	- Convert rune and string to be utf8 supported
 	- Support `\uxxx` and `\Uxxxxxxxx` escape sequences as unicode characters taking hex values
