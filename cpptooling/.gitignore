@@ -39,3 +39,23 @@
 
 # debug information files
 *.dwo
+
+
+
+
+# ---------------------------------------
+# VS
+**/.vs/*
+*.vcxproj.filters
+*.vcxproj.user
+*/x64/*
+*/x86/*
+build/*
+**/Debug/*
+**/Release/*
+
+# cmake
+CMakeUserPresets.json
+*/__pycache__/*
+*/build/*
+*/.vscode/*

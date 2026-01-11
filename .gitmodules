@@ -1,0 +1,3 @@
+[submodule "cpptooling/src-external/cpp-utils"]
+	path = cpptooling/src-external/cpp-utils
+	url = https://github.com/optic5471/cpp-utils.git
