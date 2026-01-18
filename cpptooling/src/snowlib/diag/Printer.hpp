@@ -6,8 +6,8 @@
 #include <optional>
 #include <variant>
 
-#include <file/Loc.hpp>
-#include <file/SnowFile.hpp>
+#include <snowlib/file/Loc.hpp>
+#include <snowlib/file/SnowFile.hpp>
 #include <util/NotNull.hpp>
 #include <util/String.hpp>
 

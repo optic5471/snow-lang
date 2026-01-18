@@ -12,7 +12,11 @@ namespace diag {
     std::unordered_map<Type, Desc> Desc::sDescriptors = {};
 
     const Desc& Desc::get(Type t) {
-
+        auto it = sDescriptors.find(t);
+        if (it == sDescriptors.end()) {
+            FAIL_IN_PUBLISH("Invalid descriptor type, was a new one added?");
+        }
+        return it->second;
     }
 
     void Desc::init() {
@@ -27,7 +31,7 @@ namespace diag {
         const std::string reset = util::cmd::manip::reset();
 
         auto add = [&](Type t, Stage s, Level l, const std::string& desc) {
-            sDescriptors.emplace(Desc{ s, l, t, util::format<'#'>("#{}#{}", desc, reset) });
+            sDescriptors.emplace(t, Desc{ s, l, t, util::format<'#'>("#{}#{}", desc, reset) });
         };
 
         add(Type::Unknown, Stage::Unknown, Level::Fatal, util::format<'#'>(
@@ -35,7 +39,7 @@ namespace diag {
             red));
 
 #ifdef TEST_ENABLED
-        add(Type::TEST_Warn, Stage::Tokenizer, Level::Warn, "Test warning");
+        add(Type::TEST_Warn, Stage::Tokenization, Level::Warn, "Test warning");
         add(Type::TEST_UnaryError, Stage::SyntaxAnalysis, Level::Error, util::format<'#'>(
             "Test error with '#{}${}#{}' value",
             cyan, reset));
@@ -55,7 +59,7 @@ namespace diag {
             "#{}An unknown tokenization error has occurred, please report as this hasnt likely happen before to anyone",
             red));
 
-            
+
         // -------------------------------
         // 2000-2999: Syntax Analysis
         add(Type::SA_Unknown, Stage::SyntaxAnalysis, Level::Fatal, util::format<'#'>(

@@ -84,7 +84,7 @@ namespace diag {
 
         // Filename (row|col): diagStageChar-diagTypeNumber: diagDesc
         // row(5 char width) | syntaxHighlightLine
-        //                     ~~~~^~~~~
+        //                   | ~~~~^~~~~
         // The location of the error can be:
         // - empty: dont print filename, row, or column. Print "Compiler: "
         // - SnowFile: print the filename, no row or col
@@ -121,10 +121,10 @@ namespace diag {
                 data.src = syntaxHighlight(util::trimWhitespaceEnd(strippedLine));
 
                 locationData = std::move(data);
-                locationName = util::format("${} (${}|${})", loc.file()->localPath().str(), loc.line(), loc.col());
+                locationName = util::format("${} (${}|${})", loc.file().localPath().str(), loc.line(), loc.col());
 
                 if (diagDesc.mLevel == Level::Error || diagDesc.mLevel == Level::Fatal) {
-                    loc.file()->setErrored();
+                    loc.file().setErrored();
                 }
             }
             else if (const util::RefWrap<file::SnowFile>* fileData = std::get_if<util::RefWrap<file::SnowFile>>(&args.mAt)) {
@@ -162,7 +162,7 @@ namespace diag {
                 locationName.empty() ? "Internal" : locationName,
                 util::cmd::manip::textColorDefault(),
 
-                msgColor,
+                util::cmd::manip::textColor(msgColor),
                 ToString(diagDesc.mStage),
                 _numToDigitString(static_cast<size_t>(diagDesc.mType)),
                 util::cmd::manip::textColorDefault(),
@@ -187,7 +187,7 @@ namespace diag {
 
                     bool range1Invalid = false;
                     if (args.mRange1.has_value()) {
-                        size_t rstart = args.mRange1->pos();
+                        size_t rstart = args.mRange1->col();
                         size_t rend = (rstart + args.mRange1->len());
                         if (pos > rend) {
                             range1Invalid = true;
@@ -198,7 +198,7 @@ namespace diag {
                     }
                     bool range2Invalid = false;
                     if (args.mRange2.has_value()) {
-                        size_t rstart = args.mRange2->pos();
+                        size_t rstart = args.mRange2->col();
                         size_t rend = (rstart + args.mRange2->len());
                         if (pos > rend) {
                             range2Invalid = true;
