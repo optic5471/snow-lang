@@ -1,11 +1,15 @@
 
 // Copyright (c) 2025 Andrew Griffin - All Rights Reserved
 
+#include <util/Assertions.hpp>
 #include <util/cmd/ArgParse.hpp>
 #include <util/Log.hpp>
+#include <snowlib/main.hpp>
 #include <testInfra/TestRunner.hpp>
 
 int main(int argc, const char** argv) {
+    ASSERT_IN_PUBLISH(snowlibinit(), "Failed to initialize internal compiler");
+
     // main start point for program
     util::cmd::ArgParse argparse = test::makeArgParse();
 

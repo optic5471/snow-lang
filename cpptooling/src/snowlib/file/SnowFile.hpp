@@ -23,8 +23,8 @@ namespace file {
         std::shared_ptr<ast::BaseNode> mAst;
 
     public:
-        SnowFile FromString(const std::string& str);
-        //SnowFile FromPath(const util::fs::Path& path);
+        static SnowFile FromString(const std::string& str);
+        //static SnowFile FromPath(const util::fs::Path& path);
 
         void unloadFullContents(std::shared_ptr<ast::BaseNode> ast);
         const std::shared_ptr<ast::BaseNode>& getAst() const;

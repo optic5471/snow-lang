@@ -113,10 +113,10 @@ namespace test {
             case TestInfra::TestResult::None: {
                 util::cmd::manip::Builder b("\n\n");
                 b.backgroundColorBrightYellow("            ")
-                    .textColorBrightYellow(util::format("\n({}/{}) Test results were inconclusive!\n", result.mTestsRun - result.mTestsFailed, result.mTestsRun));
+                    .textColorBrightYellow(util::format("\n(${}/${}) Test results were inconclusive!\n", result.mTestsRun - result.mTestsFailed, result.mTestsRun));
 
                 if (benchmark) {
-                    b.textColorBrightYellow(util::format("Completed in {} sec.\n", timeTaken));
+                    b.textColorBrightYellow(util::format("Completed in ${} sec.\n", timeTaken));
                 }
 
                 b.backgroundColorBrightYellow("            ")
@@ -127,10 +127,10 @@ namespace test {
             case TestInfra::TestResult::Fail: {
                 util::cmd::manip::Builder b("\n\n");
                 b.backgroundColorBrightRed("            ")
-                    .textColorBrightRed(util::format("\n({}/{}) {} tests failed!\n", result.mTestsRun - result.mTestsFailed, result.mTestsRun, result.mTestsFailed));
+                    .textColorBrightRed(util::format("\n(${}/${}) ${} tests failed!\n", result.mTestsRun - result.mTestsFailed, result.mTestsRun, result.mTestsFailed));
 
                 if (benchmark) {
-                    b.textColorBrightRed(util::format("Completed in {} sec.\n", timeTaken));
+                    b.textColorBrightRed(util::format("Completed in ${} sec.\n", timeTaken));
                 }
 
                 b.backgroundColorBrightRed("            ")
@@ -141,10 +141,10 @@ namespace test {
             case TestInfra::TestResult::Pass: {
                 util::cmd::manip::Builder b("\n\n");
                 b.backgroundColorBrightGreen("            ")
-                    .textColorBrightGreen(util::format("\n({}/{}) All tests passed!\n", result.mTestsRun - result.mTestsFailed, result.mTestsRun));
+                    .textColorBrightGreen(util::format("\n(${}/${}) All tests passed!\n", result.mTestsRun - result.mTestsFailed, result.mTestsRun));
 
                 if (benchmark) {
-                    b.textColorBrightGreen(util::format("Completed in {} sec.\n", timeTaken));
+                    b.textColorBrightGreen(util::format("Completed in ${} sec.\n", timeTaken));
                 }
 
                 b.backgroundColorBrightGreen("            ")

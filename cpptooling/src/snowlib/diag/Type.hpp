@@ -12,6 +12,8 @@ namespace diag {
         // -------------------------------
         // 0-999:     Defaults
         Unknown = 0,
+        InternalFatal = 1,
+
 
 #ifdef TEST_ENABLED
         TEST_Warn = 996,
@@ -19,9 +21,6 @@ namespace diag {
         TEST_BinaryInfo = 998,
         TEST_Suggestion = 999,
 #endif
-
-        InternalFatal = 1,
-
 
         // -------------------------------
         // 1000-1999: Tokenization

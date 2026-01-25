@@ -20,8 +20,8 @@ namespace diag {
                 std::monostate,
                 util::RefWrap<file::SnowFile>,
                 util::RefWrap<file::Loc>> mAt;
-            std::optional<file::LocRange> mRange1;
-            std::optional<file::LocRange> mRange2;
+            std::optional<util::RefWrap<file::LocRange>> mRange1;
+            std::optional<util::RefWrap<file::LocRange>> mRange2;
             std::vector<std::string> mArgs;
             Type mType;
         };
@@ -37,41 +37,41 @@ namespace diag {
         void constructMakeArgs(MakeArgs& out, bool parseToArgs, tArg&& arg, tArgs&&... args) {
             if constexpr (depth == 0) {
                 if constexpr (std::is_same_v<std::decay_t<tArg>, file::SnowFile>) {
-                    out.mAt = std::forward<tArg>(arg);
+                    out.mAt = util::RefWrap<file::SnowFile>(arg);
                 }
                 else if constexpr (std::is_same_v<std::decay_t<tArg>, file::Loc>) {
-                    out.mAt = std::forward<tArg>(arg);
+                    out.mAt = util::RefWrap<file::Loc>(arg);
                 }
                 else if constexpr (std::is_same_v<std::decay_t<tArg>, file::LocRange>) {
-                    out.mRange1 = std::forward<tArg>(arg);
+                    out.mRange1 = util::RefWrap<file::LocRange>(arg);
                 }
                 else {
                     parseToArgs = true;
-                    out.mArgs.emplace_back(std::to_string(std::forward<tArg>(arg)));
+                    out.mArgs.emplace_back(util::toString(std::forward<tArg>(arg)));
                 }
             }
             else if constexpr (depth == 1) {
                 if (parseToArgs) {
-                    out.mArgs.emplace_back(std::to_string(std::forward<tArg>(arg)));
+                    out.mArgs.emplace_back(util::toString(std::forward<tArg>(arg)));
                 }
                 else {
                     if constexpr (std::is_same_v<std::decay_t<tArg>, file::LocRange>) {
                         if (out.mRange1.has_value()) {
-                            out.mRange2 = std::forward<tArg>(arg);
+                            out.mRange2 = util::RefWrap<file::LocRange>(arg);
                         }
                         else {
-                            out.mRange1 = std::forward<tArg>(arg);
+                            out.mRange1 = util::RefWrap<file::LocRange>(arg);
                         }
                     }
                     else {
                         parseToArgs = true;
-                        out.mArgs.emplace_back(std::to_string(std::forward<tArg>(arg)));
+                        out.mArgs.emplace_back(util::toString(std::forward<tArg>(arg)));
                     }
                 }
             }
             else if constexpr (depth == 2) {
                 if (parseToArgs) {
-                    out.mArgs.emplace_back(std::to_string(std::forward<tArg>(arg)));
+                    out.mArgs.emplace_back(util::toString(std::forward<tArg>(arg)));
                 }
                 else {
                     if constexpr (std::is_same_v<std::decay_t<tArg>, file::LocRange>) {
@@ -79,21 +79,24 @@ namespace diag {
                             DEBUG_FAIL("Too many ranges have been provided");
                         }
                         else {
-                            out.mRange2 = std::forward<tArg>(arg);
+                            out.mRange2 = util::RefWrap<file::LocRange>(arg);
                         }
                     }
                     else {
                         parseToArgs = true;
-                        out.mArgs.emplace_back(std::to_string(std::forward<tArg>(arg)));
+                        out.mArgs.emplace_back(util::toString(std::forward<tArg>(arg)));
                     }
                 }
             }
             else {
                 parseToArgs = true;
-                out.mArgs.emplace_back(std::to_string(std::forward<tArg>(arg)));
+                out.mArgs.emplace_back(util::toString(std::forward<tArg>(arg)));
             }
             constructMakeArgs<depth + 1, tArgs...>(out, parseToArgs, std::forward<tArgs>(args)...);
         }
+
+        template <size_t depth>
+        void constructMakeArgs(MakeArgs& out, bool parseToArgs) {}
     }
 
     // returns the same string with proper highlighting

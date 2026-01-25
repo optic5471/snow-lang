@@ -2,6 +2,7 @@
 
 #include <snowlib/file/Loc.hpp>
 #include <snowlib/file/SnowFile.hpp>
+#include <util/Assertions.hpp>
 
 namespace file {
     Loc::Loc(const SnowFile& file, size_t line, size_t col, const char* pos)
@@ -34,13 +35,14 @@ namespace file {
             pos--;
         }
 
-        if ((*pos) != '\n' && (*pos) != '\r') {
+        if ((*pos) == '\n' || (*pos) == '\r') {
             pos++;
         }
 
         // now read until the next new line character or the end of the file
         while (pos != end && (*pos) != '\n' && (*pos) != '\r') {
             ret.push_back(*pos);
+            pos++;
         }
 
         return ret;
@@ -51,6 +53,18 @@ namespace file {
     LocRange::LocRange(const SnowFile& file, size_t line, size_t col, const char* pos, size_t len)
         : Loc(file, line, col, pos)
         , mLength(len) {
+
+        const std::string& contents = file.getFullContents();
+        if ((pos + len) >= (contents.c_str() + contents.size())) {
+            FAIL_IN_PUBLISH("This LocRange is a range which exceeds the file's contents");
+        }
+        else {
+            for (size_t i = 0; i < len; ++i) {
+                if (*(pos + i) == '\n' || *(pos + i) == '\r') {
+                    FAIL_IN_PUBLISH("This LocRange is a range which spans a newline character");
+                }
+            }
+        }
     }
 
     size_t LocRange::len() const {

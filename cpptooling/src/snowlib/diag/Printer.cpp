@@ -51,15 +51,15 @@ namespace diag {
     namespace internal {
         std::string _numToDigitString(size_t digit) {
             if (digit < 10) {
-                return util::format("000{}", digit);
+                return util::format("000${}", digit);
             }
             else if (digit < 100) {
-                return util::format("00{}", digit);
+                return util::format("00${}", digit);
             }
             else if (digit < 1000) {
-                return util::format("0{}", digit);
+                return util::format("0${}", digit);
             }
-            return util::format("{}", digit);
+            return util::format("${}", digit);
         }
 
         std::tuple<std::string, size_t> _stripAndCountBeginningWhitespace(const std::string& str) {
@@ -109,8 +109,7 @@ namespace diag {
 
             std::optional<LocationData> locationData;
             std::string locationName;
-            if (const util::RefWrap<file::Loc>* locData = std::get_if<util::RefWrap<file::Loc>>(&args.mAt)) {
-                const file::Loc& loc = **locData;
+            auto locLocationParser = [&locationData, &locationName, level = diagDesc.mLevel](const file::Loc& loc) {
                 LocationData data;
                 data.lineNum = loc.line();
                 data.col = loc.col();
@@ -123,9 +122,13 @@ namespace diag {
                 locationData = std::move(data);
                 locationName = util::format("${} (${}|${})", loc.file().localPath().str(), loc.line(), loc.col());
 
-                if (diagDesc.mLevel == Level::Error || diagDesc.mLevel == Level::Fatal) {
+                if (level == Level::Error || level == Level::Fatal) {
                     loc.file().setErrored();
                 }
+            };
+
+            if (const util::RefWrap<file::Loc>* locData = std::get_if<util::RefWrap<file::Loc>>(&args.mAt)) {
+                locLocationParser(**locData);
             }
             else if (const util::RefWrap<file::SnowFile>* fileData = std::get_if<util::RefWrap<file::SnowFile>>(&args.mAt)) {
                 locationName = (*fileData)->localPath().str();
@@ -133,6 +136,9 @@ namespace diag {
                 if (diagDesc.mLevel == Level::Error || diagDesc.mLevel == Level::Fatal) {
                     (*fileData)->setErrored();
                 }
+            }
+            else if (args.mRange1.has_value()) {
+                locLocationParser(**args.mRange1);
             }
 
             util::cmd::manip::TextColor msgColor;
@@ -163,7 +169,7 @@ namespace diag {
                 util::cmd::manip::textColorDefault(),
 
                 util::cmd::manip::textColor(msgColor),
-                ToString(diagDesc.mStage),
+                StageShortName(diagDesc.mStage),
                 _numToDigitString(static_cast<size_t>(diagDesc.mType)),
                 util::cmd::manip::textColorDefault(),
 
@@ -187,8 +193,8 @@ namespace diag {
 
                     bool range1Invalid = false;
                     if (args.mRange1.has_value()) {
-                        size_t rstart = args.mRange1->col();
-                        size_t rend = (rstart + args.mRange1->len());
+                        size_t rstart = (*args.mRange1)->col() - 1;
+                        size_t rend = (rstart + (*args.mRange1)->len());
                         if (pos > rend) {
                             range1Invalid = true;
                         }
@@ -198,8 +204,8 @@ namespace diag {
                     }
                     bool range2Invalid = false;
                     if (args.mRange2.has_value()) {
-                        size_t rstart = args.mRange2->col();
-                        size_t rend = (rstart + args.mRange2->len());
+                        size_t rstart = (*args.mRange2)->col() - 1;
+                        size_t rend = (rstart + (*args.mRange2)->len());
                         if (pos > rend) {
                             range2Invalid = true;
                         }
@@ -208,7 +214,7 @@ namespace diag {
                         }
                     }
                     bool posInvalid = false;
-                    if (pos > locationData->col) {
+                    if (pos > (locationData->col - 1)) {
                         posInvalid = true;
                     }
 
@@ -217,7 +223,7 @@ namespace diag {
                         break;
                     }
 
-                    if (pos == locationData->col) {
+                    if (pos == (locationData->col - 1)) {
                         positionData += util::format("${}^${}",
                             util::cmd::manip::textColorBrightGreen(),
                             util::cmd::manip::textColorDefault());
@@ -232,7 +238,7 @@ namespace diag {
                     }
                 }
 
-                std::string caretLine = util::format("      | ${}", positionData);
+                std::string caretLine = util::format("     | ${}", positionData);
                 finalMsg = util::format("${}\n${}\n${}\n", diagMessageLine, srcMessageLine, caretLine);
             }
             else {

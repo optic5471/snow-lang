@@ -28,7 +28,7 @@ namespace TestHelpers {
 
     void TestLogHook::_startTest(const std::string& funcName) {
         if (!mQuiet) {
-            Log::log("\t{}", funcName);
+            Log::log("\t${}", funcName);
         }
     }
 
@@ -43,18 +43,18 @@ namespace TestHelpers {
 
         if (!mQuiet) {
             if (mBenchmark) {
-                Log::log("\t\t{} in {} ms", resultName,  timeMs);
+                Log::log("\t\t${} in ${} ms", resultName,  timeMs);
             }
             else {
-                Log::log("\t\t{}", resultName);
+                Log::log("\t\t${}", resultName);
             }
         }
         else if (result != TestInfra::TestResult::Pass) {
             if (mBenchmark) {
-                Log::log("{} : {}\n\t{} in {} ms", mCurrentClass, funcName, resultName, timeMs);
+                Log::log("${} : ${}\n\t${} in ${} ms", mCurrentClass, funcName, resultName, timeMs);
             }
             else {
-                Log::log("{} : {}\n\t{}", mCurrentClass, funcName, resultName);
+                Log::log("${} : ${}\n\t${}", mCurrentClass, funcName, resultName);
             }
         }
     }
@@ -78,7 +78,7 @@ namespace TestHelpers {
                 resultName = util::cmd::manip::textColorBrightYellow() + "Inconclusive" + util::cmd::manip::textColorDefault();
             }
 
-            Log::log("\t{} in {} ms", resultName, timeMs);
+            Log::log("\t${} in ${} ms", resultName, timeMs);
         }
     }
 }

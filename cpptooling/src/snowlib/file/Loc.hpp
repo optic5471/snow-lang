@@ -16,6 +16,7 @@ namespace file {
 
     public:
         Loc(const SnowFile& file, size_t line, size_t col, const char* pos);
+
         size_t line() const;
         size_t col() const;
         const SnowFile& file() const;
@@ -32,6 +33,7 @@ namespace file {
     public:
         // if the range passes over a newline, this will throw. Also if this exceeds the file length
         LocRange(const SnowFile& file, size_t line, size_t col, const char* pos, size_t len);
+
         size_t len() const;
         std::string lexeme() const;
     };
