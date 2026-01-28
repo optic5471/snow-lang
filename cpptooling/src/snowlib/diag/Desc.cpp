@@ -28,10 +28,10 @@ namespace diag {
         const std::string italicsOff = util::cmd::manip::textItalicOff();
         const std::string underline = util::cmd::manip::textUnderlineOn();
         const std::string underlineOff = util::cmd::manip::textUnderlineOff();
-        const std::string reset = util::cmd::manip::reset();
+        const std::string def = util::cmd::manip::textColorDefault();
 
         auto add = [&](Type t, Stage s, Level l, const std::string& desc) {
-            sDescriptors.emplace(t, Desc{ s, l, t, util::format<'#'>("#{}#{}", desc, reset) });
+            sDescriptors.emplace(t, Desc{ s, l, t, util::format<'#'>("#{}#{}", desc, util::cmd::manip::reset()) });
         };
 
         add(Type::Unknown, Stage::Unknown, Level::Fatal, util::format<'#'>(
@@ -42,10 +42,10 @@ namespace diag {
         add(Type::TEST_Warn, Stage::Tokenization, Level::Warn, "Test warning");
         add(Type::TEST_UnaryError, Stage::SyntaxAnalysis, Level::Error, util::format<'#'>(
             "Test error with '#{}${}#{}' value",
-            cyan, reset));
+            cyan, def));
         add(Type::TEST_BinaryInfo, Stage::Unknown, Level::Info, util::format<'#'>(
-            "Test binary error of '#{}${}#{}' and '#{}${}#{}'",
-            cyan, reset, cyan, reset));
+            "Test binary error of '#{}#{}${}#{}#{}' and '#{}${}#{}'",
+            cyan, underline, underlineOff, def, red, def));
         add(Type::TEST_Suggestion, Stage::Unknown, Level::Suggest, "Suggest doing X");
 #endif
 

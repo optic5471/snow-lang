@@ -33,6 +33,22 @@ namespace diag {
 
         void printDiag(const MakeArgs& args);
 
+        // These debug utils help diagnose type issues with the constructMakeArgs function
+        template <size_t depthToPrint, size_t depth, typename tArg, typename... tArgs>
+        void DEBUG_print_type_at_depth(tArg&& arg, tArgs&&... args) {
+            if constexpr (depth == depthToPrint) {
+                // this will produce an error similar to `C2039: 'something_made_up': is not a member of 'file::Loc'
+                typedef typename std::decay_t<tArg>::something_made_up X;
+            }
+            else {
+                DEBUG_print_type_at_depth<depthToPrint, depth + 1>(std::forward<tArgs>(args)...);
+            }
+        }
+        template <size_t depthToPrint, size_t depth>
+        void DEBUG_print_type_at_depth() {
+            static_assert("No type to print");
+        }
+
         template <size_t depth, typename tArg, typename... tArgs>
         void constructMakeArgs(MakeArgs& out, bool parseToArgs, tArg&& arg, tArgs&&... args) {
             if constexpr (depth == 0) {
@@ -51,41 +67,37 @@ namespace diag {
                 }
             }
             else if constexpr (depth == 1) {
-                if (parseToArgs) {
-                    out.mArgs.emplace_back(util::toString(std::forward<tArg>(arg)));
-                }
-                else {
-                    if constexpr (std::is_same_v<std::decay_t<tArg>, file::LocRange>) {
-                        if (out.mRange1.has_value()) {
-                            out.mRange2 = util::RefWrap<file::LocRange>(arg);
-                        }
-                        else {
-                            out.mRange1 = util::RefWrap<file::LocRange>(arg);
-                        }
+                if constexpr (std::is_same_v<std::decay_t<tArg>, file::LocRange>) {
+                    if (parseToArgs) {
+                        DEBUG_FAIL("Range was provided after arguments. Please define all ranges before arguments");
+                    }
+                    else if (out.mRange1.has_value()) {
+                        out.mRange2 = util::RefWrap<file::LocRange>(arg);
                     }
                     else {
-                        parseToArgs = true;
-                        out.mArgs.emplace_back(util::toString(std::forward<tArg>(arg)));
+                        out.mRange1 = util::RefWrap<file::LocRange>(arg);
                     }
+                }
+                else {
+                    parseToArgs = true;
+                    out.mArgs.emplace_back(util::toString(std::forward<tArg>(arg)));
                 }
             }
             else if constexpr (depth == 2) {
-                if (parseToArgs) {
-                    out.mArgs.emplace_back(util::toString(std::forward<tArg>(arg)));
-                }
-                else {
-                    if constexpr (std::is_same_v<std::decay_t<tArg>, file::LocRange>) {
-                        if (out.mRange2.has_value()) {
-                            DEBUG_FAIL("Too many ranges have been provided");
-                        }
-                        else {
-                            out.mRange2 = util::RefWrap<file::LocRange>(arg);
-                        }
+                if constexpr (std::is_same_v<std::decay_t<tArg>, file::LocRange>) {
+                    if (parseToArgs) {
+                        DEBUG_FAIL("Range was provided after arguments. Please define all ranges before arguments");
+                    }
+                    else if (out.mRange2.has_value()) {
+                        DEBUG_FAIL("Too many ranges have been provided");
                     }
                     else {
-                        parseToArgs = true;
-                        out.mArgs.emplace_back(util::toString(std::forward<tArg>(arg)));
+                        out.mRange2 = util::RefWrap<file::LocRange>(arg);
                     }
+                }
+                else {
+                    parseToArgs = true;
+                    out.mArgs.emplace_back(util::toString(std::forward<tArg>(arg)));
                 }
             }
             else {
@@ -113,5 +125,11 @@ namespace diag {
         a.mType = t;
         internal::constructMakeArgs<0, tArgs...>(a, false, std::forward<tArgs>(args)...);
         internal::printDiag(a);
+    }
+
+    // These debug utils help diagnose type issues with the constructMakeArgs function
+    template <typename... tArgs>
+    void makeDEBUG(Type t, tArgs&&... args) {
+        internal::DEBUG_print_type_at_depth<1, 0>(std::forward<tArgs>(args)...);
     }
 }

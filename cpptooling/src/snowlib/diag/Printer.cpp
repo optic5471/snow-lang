@@ -105,6 +105,7 @@ namespace diag {
                 size_t lineNum;
                 std::string src;
                 size_t whitespaceCountAtBeginning;
+                const file::SnowFile* file = nullptr;
             };
 
             std::optional<LocationData> locationData;
@@ -113,6 +114,7 @@ namespace diag {
                 LocationData data;
                 data.lineNum = loc.line();
                 data.col = loc.col();
+                data.file = &loc.file();
 
                 std::string fullLine = loc.getFullLine();
                 auto [strippedLine, wsCount] = _stripAndCountBeginningWhitespace(fullLine);
@@ -129,6 +131,30 @@ namespace diag {
 
             if (const util::RefWrap<file::Loc>* locData = std::get_if<util::RefWrap<file::Loc>>(&args.mAt)) {
                 locLocationParser(**locData);
+
+                const file::Loc& l = **locData;
+                auto checkRange = [&](const file::LocRange& r) -> bool {
+                    if (l.line() != r.line()) {
+                        FAIL_IN_PUBLISH("A diag provided with ranges must come from the same line, use supplemental diags for multi-line");
+                        return false;
+                    }
+                    else if (&l.file() != &r.file()) {
+                        FAIL_IN_PUBLISH("A diag provided with ranges, must have ranges and loc come from the same file");
+                        return false;
+                    }
+                    return true;
+                };
+
+                if (args.mRange1.has_value()) {
+                    if (!checkRange(**args.mRange1)) {
+                        return;
+                    }
+                }
+                if (args.mRange2.has_value()) {
+                    if (!checkRange(**args.mRange2)) {
+                        return;
+                    }
+                }
             }
             else if (const util::RefWrap<file::SnowFile>* fileData = std::get_if<util::RefWrap<file::SnowFile>>(&args.mAt)) {
                 locationName = (*fileData)->localPath().str();
@@ -136,9 +162,27 @@ namespace diag {
                 if (diagDesc.mLevel == Level::Error || diagDesc.mLevel == Level::Fatal) {
                     (*fileData)->setErrored();
                 }
+
+                if (args.mRange1.has_value()) {
+                    FAIL_IN_PUBLISH("A diag provided with only a file cannot use ranges");
+                    return;
+                }
             }
             else if (args.mRange1.has_value()) {
+                const file::LocRange& r1 = **args.mRange1;
                 locLocationParser(**args.mRange1);
+
+                if (args.mRange2.has_value()) {
+                    const file::LocRange& r2 = **args.mRange2;
+                    if (&r1.file() != &r2.file()) {
+                        FAIL_IN_PUBLISH("A diag provided with ranges, must have both ranges come from the same file");
+                        return;
+                    }
+                    else if (r1.line() != r2.line()) {
+                        FAIL_IN_PUBLISH("A diag provided with ranges must come from the same line, use supplemental diags for multi-line");
+                        return;
+                    }
+                }
             }
 
             util::cmd::manip::TextColor msgColor;
@@ -160,6 +204,7 @@ namespace diag {
                 }
                 default: {
                     DEBUG_FAIL("Unknown diag level");
+                    return;
                 }
             }
 
@@ -238,18 +283,15 @@ namespace diag {
                     }
                 }
 
-                std::string caretLine = util::format("     | ${}", positionData);
+                std::string caretLine = util::format("${}     | ${}${}",
+                    util::cmd::manip::textColorDarkGrey(),
+                    util::cmd::manip::textColorDefault(),
+                    positionData);
                 finalMsg = util::format("${}\n${}\n${}\n", diagMessageLine, srcMessageLine, caretLine);
             }
             else {
                 finalMsg = diagMessageLine;
             }
-
-#ifdef TEST_ENABLED
-            if (gTestOnlyCaptureEndPoint.has_value()) {
-                gTestOnlyCaptureEndPoint.value().emplace_back(diagDesc.mType);
-            }
-#endif
 
             // finally log
             switch (diagDesc.mLevel) {
@@ -274,8 +316,15 @@ namespace diag {
                 }
                 default: {
                     DEBUG_FAIL("Unknown diag level");
+                    return;
                 }
             }
+
+#ifdef TEST_ENABLED
+            if (gTestOnlyCaptureEndPoint.has_value()) {
+                gTestOnlyCaptureEndPoint.value().emplace_back(diagDesc.mType);
+            }
+#endif
         }
 
 #ifdef TEST_ENABLED

@@ -5,6 +5,7 @@
 
 #include <snowlib/diag/Diag.hpp>
 #include <snowlib/file/SnowFile.hpp>
+#include <test/testHelpers/TestAssertHandler.hpp>
 #include <util/cmd/manip.hpp>
 
 namespace test {
@@ -60,7 +61,7 @@ namespace test {
             b.textColorBrightBlue("In Memory (1|2)").text(": ").textColorBrightYellow("T0996")
                 .text(": Test warning").reset().text("\n")
                 .textColorDarkGrey("0001 |").text(" asdf\n")
-                .text("     |  ").textColorBrightGreen("^");
+                .textColorDarkGrey("     | ").text(" ").textColorBrightGreen("^");
 
             log->expectOneMessageWhichContains(b.str());
         }
@@ -75,9 +76,272 @@ namespace test {
             b.textColorBrightBlue("In Memory (1|2)").text(": ").textColorBrightYellow("T0996")
                 .text(": Test warning").reset().text("\n")
                 .textColorDarkGrey("0001 |").text(" asdf\n")
-                .text("     |  ").textColorBrightGreen("^").textColorBrightMagenta("~");
+                .textColorDarkGrey("     | ").text(" ").textColorBrightGreen("^").textColorBrightMagenta("~");
 
             log->expectOneMessageWhichContains(b.str());
+        }
+
+        TEST(Diag_Suggest_PrintsOkay) {
+            diag::make(diag::Type::TEST_Suggestion);
+            auto log = Log::testOnly_disableTestEndPoint();
+
+            auto b = util::cmd::manip::Builder();
+            b.textColorBrightBlue("Internal").text(": ").textColorBrightYellow("U0999")
+                .text(": Suggest doing X");
+
+            log->expectOneMessageWhichContains(b.str());
+        }
+
+        TEST(Diag_Unary_PrintsOkay) {
+            //               0123456789012
+            std::string s = "unary p unary";
+            auto f = file::SnowFile::FromString(s);
+            auto l = file::Loc(f, 1, 7, f.getFullContents().c_str() + 6);
+
+            diag::make(diag::Type::TEST_UnaryError, l, "thingy");
+            auto log = Log::testOnly_disableTestEndPoint();
+
+            auto b = util::cmd::manip::Builder();
+            b.textColorBrightBlue("In Memory (1|7)").text(": ").textColorBrightRed("A0997")
+                .text(": Test error with '").textColorBrightCyan("thingy").text("' value").reset().text("\n")
+                .textColorDarkGrey("0001 |").text(" unary p unary\n")
+                .textColorDarkGrey("     | ").text("      ").textColorBrightGreen("^");
+
+            log->expectOneMessageWhichContains(b.str());
+        }
+
+        TEST(Diag_UnaryRangeBefore_PrintsOkay) {
+            //               0123456789012
+            std::string s = "unary p unary";
+            auto f = file::SnowFile::FromString(s);
+            auto l = file::Loc(f, 1, 7, f.getFullContents().c_str() + 6);
+            auto r = file::LocRange(f, 1, 1, f.getFullContents().c_str(), 5);
+
+            diag::make(diag::Type::TEST_UnaryError, l, r, "thingy");
+            auto log = Log::testOnly_disableTestEndPoint();
+
+            auto b = util::cmd::manip::Builder();
+            b.textColorBrightBlue("In Memory (1|7)").text(": ").textColorBrightRed("A0997")
+                .text(": Test error with '").textColorBrightCyan("thingy").text("' value").reset().text("\n")
+                .textColorDarkGrey("0001 |").text(" unary p unary\n")
+                .textColorDarkGrey("     | ");
+            for (size_t i = 0; i < 5; ++i) {
+                b.textColorBrightMagenta("~");
+            }
+            b.text(" ").textColorBrightGreen("^");
+
+            log->expectOneMessageWhichContains(b.str());
+        }
+
+        TEST(Diag_UnaryRangeAfter_PrintsOkay) {
+            //               0123456789012
+            std::string s = "unary p unary";
+            auto f = file::SnowFile::FromString(s);
+            auto l = file::Loc(f, 1, 7, f.getFullContents().c_str() + 6);
+            auto r = file::LocRange(f, 1, 9, f.getFullContents().c_str() + 7, 5);
+
+            diag::make(diag::Type::TEST_UnaryError, l, r, "thingy");
+            auto log = Log::testOnly_disableTestEndPoint();
+
+            auto b = util::cmd::manip::Builder();
+            b.textColorBrightBlue("In Memory (1|7)").text(": ").textColorBrightRed("A0997")
+                .text(": Test error with '").textColorBrightCyan("thingy").text("' value").reset().text("\n")
+                .textColorDarkGrey("0001 |").text(" unary p unary\n")
+                .textColorDarkGrey("     | ").text("      ").textColorBrightGreen("^").text(" ");
+            for (size_t i = 0; i < 5; ++i) {
+                b.textColorBrightMagenta("~");
+            }
+
+            log->expectOneMessageWhichContains(b.str());
+        }
+
+        TEST(Diag_UnaryRangeMix_PrintsOkay) {
+            //               0123456789012
+            std::string s = "unary p unary";
+            auto f = file::SnowFile::FromString(s);
+            auto l = file::Loc(f, 1, 7, f.getFullContents().c_str() + 6);
+            auto r = file::LocRange(f, 1, 4, f.getFullContents().c_str() + 2, 7);
+
+            diag::make(diag::Type::TEST_UnaryError, l, r, "thingy");
+            auto log = Log::testOnly_disableTestEndPoint();
+
+            auto b = util::cmd::manip::Builder();
+            b.textColorBrightBlue("In Memory (1|7)").text(": ").textColorBrightRed("A0997")
+                .text(": Test error with '").textColorBrightCyan("thingy").text("' value").reset().text("\n")
+                .textColorDarkGrey("0001 |").text(" unary p unary\n")
+                .textColorDarkGrey("     | ").text("   ");
+            for (size_t i = 0; i < 3; ++i) {
+                b.textColorBrightMagenta("~");
+            }
+            b.textColorBrightGreen("^");
+            for (size_t i = 0; i < 3; ++i) {
+                b.textColorBrightMagenta("~");
+            }
+
+            log->expectOneMessageWhichContains(b.str());
+        }
+
+        TEST(Diag_UnaryRangeDual_PrintsOkay) {
+            //               0123456789012
+            std::string s = "unary p unary";
+            auto f = file::SnowFile::FromString(s);
+            auto l = file::Loc(f, 1, 7, f.getFullContents().c_str() + 6);
+            auto r1 = file::LocRange(f, 1, 1, f.getFullContents().c_str(), 5);
+            auto r2 = file::LocRange(f, 1, 9, f.getFullContents().c_str() + 7, 5);
+
+            diag::make(diag::Type::TEST_UnaryError, l, r1, r2, "thingy");
+            auto log = Log::testOnly_disableTestEndPoint();
+
+            auto b = util::cmd::manip::Builder();
+            b.textColorBrightBlue("In Memory (1|7)").text(": ").textColorBrightRed("A0997")
+                .text(": Test error with '").textColorBrightCyan("thingy").text("' value").reset().text("\n")
+                .textColorDarkGrey("0001 |").text(" unary p unary\n")
+                .textColorDarkGrey("     | ");
+            for (size_t i = 0; i < 5; ++i) {
+                b.textColorBrightMagenta("~");
+            }
+            b.text(" ").textColorBrightGreen("^").text(" ");
+            for (size_t i = 0; i < 5; ++i) {
+                b.textColorBrightMagenta("~");
+            }
+
+            log->expectOneMessageWhichContains(b.str());
+        }
+
+        TEST(Diag_Binary_PrintsOkay) {
+            diag::make(diag::Type::TEST_BinaryInfo, "foo", "bar");
+            auto log = Log::testOnly_disableTestEndPoint();
+
+            auto b = util::cmd::manip::Builder();
+            b.textColorBrightBlue("Internal").text(": ").textColorBrightCyan("U0998")
+                .text(": Test binary error of '").textColorBrightCyanOn()
+                .textUnderline("foo").textColorDefault().text("' and '").textColorBrightRed("bar").text("'");
+
+            log->expectOneMessageWhichContains(b.str());
+        }
+
+        // exactly the same test as Diag_WarnLocRange_PrintsOkay
+        TEST(Diag_MultiLineFile_PrintsOkay) {
+            auto f = file::SnowFile::FromString("when in the summer\n\rasdf\n\rI find myself wondering");
+            auto l = file::LocRange(f, 2, 2, f.getFullContents().c_str() + 21, 2);
+            diag::make(diag::Type::TEST_Warn, l);
+            auto log = Log::testOnly_disableTestEndPoint();
+
+            auto b = util::cmd::manip::Builder();
+            b.textColorBrightBlue("In Memory (2|2)").text(": ").textColorBrightYellow("T0996")
+                .text(": Test warning").reset().text("\n")
+                .textColorDarkGrey("0002 |").text(" asdf\n")
+                .textColorDarkGrey("     | ").text(" ").textColorBrightGreen("^").textColorBrightMagenta("~");
+
+            log->expectOneMessageWhichContains(b.str());
+        }
+
+        TEST(Diag_ArgsThenRange_Fails) {
+            AssertHandler handler;
+            std::string s = "unary p unary";
+            auto f = file::SnowFile::FromString(s);
+            auto l = file::Loc(f, 1, 7, f.getFullContents().c_str() + 6);
+            auto r = file::LocRange(f, 1, 1, f.getFullContents().c_str(), 5);
+
+            diag::make(diag::Type::TEST_UnaryError, l, "thingy", r);
+            handler.expectOneMessageWhichContains("Range was provided after arguments. Please define all ranges before arguments");
+        }
+
+        TEST(Diag_RangeArgRange_Fails) {
+            AssertHandler handler;
+            std::string s = "unary p unary";
+            auto f = file::SnowFile::FromString(s);
+            auto r1 = file::LocRange(f, 1, 1, f.getFullContents().c_str(), 5);
+            auto r2 = file::LocRange(f, 1, 3, f.getFullContents().c_str(), 5);
+
+            diag::make(diag::Type::TEST_UnaryError, r1, "thingy", r2);
+            handler.expectOneMessageWhichContains("Range was provided after arguments. Please define all ranges before arguments");
+        }
+
+        TEST(Diag_TooManyRanges_Fails) {
+            AssertHandler handler;
+            std::string s = "unary p unary";
+            auto f = file::SnowFile::FromString(s);
+            auto r1 = file::LocRange(f, 1, 1, f.getFullContents().c_str(), 5);
+            auto r2 = file::LocRange(f, 1, 3, f.getFullContents().c_str(), 5);
+            auto r3 = file::LocRange(f, 1, 5, f.getFullContents().c_str(), 5);
+
+            diag::make(diag::Type::TEST_UnaryError, r1, r2, r3, "thingy");
+            handler.expectOneMessageWhichContains("Too many ranges have been provided");
+        }
+
+        TEST(Diag_LocAndRangeDifferentLine_Fails) {
+            AssertHandler handler;
+            std::string s = "unary p unary\nasdf";
+            auto f = file::SnowFile::FromString(s);
+            auto l = file::Loc(f, 1, 7, f.getFullContents().c_str() + 6);
+            auto r1 = file::LocRange(f, 2, 1, f.getFullContents().c_str() + 14, 2);
+            diag::make(diag::Type::TEST_UnaryError, l, r1, "Thingy");
+            handler.expectOneMessageWhichContains("A diag provided with ranges must come from the same line, use supplemental diags for multi-line");
+        }
+        TEST(Diag_LocAndRange2DifferentLine_Fails) {
+            AssertHandler handler;
+            std::string s = "unary p unary\nasdf";
+            auto f = file::SnowFile::FromString(s);
+            auto l = file::Loc(f, 1, 7, f.getFullContents().c_str() + 6);
+            auto r1 = file::LocRange(f, 1, 1, f.getFullContents().c_str(), 2);
+            auto r2 = file::LocRange(f, 2, 1, f.getFullContents().c_str() + 14, 2);
+            diag::make(diag::Type::TEST_UnaryError, l, r1, r2, "Thingy");
+            handler.expectOneMessageWhichContains("A diag provided with ranges must come from the same line, use supplemental diags for multi-line");
+        }
+
+        TEST(Diag_LocAndRangeDifferentFile_Fails) {
+            AssertHandler handler;
+            std::string s = "unary p unary";
+            std::string s2 = "22222";
+            auto f1 = file::SnowFile::FromString(s);
+            auto f2 = file::SnowFile::FromString(s);
+            auto l = file::Loc(f1, 1, 7, f1.getFullContents().c_str() + 6);
+            auto r1 = file::LocRange(f2, 1, 1, f2.getFullContents().c_str(), 2);
+            diag::make(diag::Type::TEST_UnaryError, l, r1, "Thingy");
+            handler.expectOneMessageWhichContains("A diag provided with ranges, must have ranges and loc come from the same file");
+        }
+        TEST(Diag_LocAndRange2DifferentFile_Fails) {
+            AssertHandler handler;
+            std::string s = "unary p unary";
+            std::string s2 = "22222";
+            auto f1 = file::SnowFile::FromString(s);
+            auto f2 = file::SnowFile::FromString(s);
+            auto l = file::Loc(f1, 1, 7, f1.getFullContents().c_str() + 6);
+            auto r1 = file::LocRange(f1, 1, 1, f1.getFullContents().c_str(), 2);
+            auto r2 = file::LocRange(f2, 1, 3, f2.getFullContents().c_str() + 2, 2);
+            diag::make(diag::Type::TEST_UnaryError, l, r1, r2, "Thingy");
+            handler.expectOneMessageWhichContains("A diag provided with ranges, must have ranges and loc come from the same file");
+        }
+
+        TEST(Diag_FileAndRange_Fails) {
+            AssertHandler handler;
+            std::string s = "unary p unary";
+            auto f = file::SnowFile::FromString(s);
+            auto r1 = file::LocRange(f, 1, 1, f.getFullContents().c_str(), 2);
+            diag::make(diag::Type::TEST_UnaryError, f, r1, "Thingy");
+            handler.expectOneMessageWhichContains("A diag provided with only a file cannot use ranges");
+        }
+
+        TEST(Diag_RangesWithDifferentLines_Fails) {
+            AssertHandler handler;
+            std::string s = "unary p unary\nasdf";
+            auto f = file::SnowFile::FromString(s);
+            auto r1 = file::LocRange(f, 1, 1, f.getFullContents().c_str(), 2);
+            auto r2 = file::LocRange(f, 2, 1, f.getFullContents().c_str() + 14, 2);
+            diag::make(diag::Type::TEST_UnaryError, r1, r2, "Thingy");
+            handler.expectOneMessageWhichContains("A diag provided with ranges must come from the same line, use supplemental diags for multi-line");
+        }
+
+        TEST(Diag_RangesWithDifferentFiles_Fails) {
+            AssertHandler handler;
+            std::string s = "unary p unary\nasdf";
+            auto f1 = file::SnowFile::FromString(s);
+            auto f2 = file::SnowFile::FromString(s);
+            auto r1 = file::LocRange(f1, 1, 1, f1.getFullContents().c_str(), 2);
+            auto r2 = file::LocRange(f2, 1, 1, f2.getFullContents().c_str(), 2);
+            diag::make(diag::Type::TEST_UnaryError, r1, r2, "Thingy");
+            handler.expectOneMessageWhichContains("A diag provided with ranges, must have both ranges come from the same file");
         }
     };
 }
