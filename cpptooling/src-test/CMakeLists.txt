@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Andrew Griffin - All Rights Reserved
+# Copyright (c) 2026 Andrew Griffin - All Rights Reserved
 
 add_executable(UnitTest)
 set_target_properties(UnitTest PROPERTIES WIN32_EXECUTABLE OFF)

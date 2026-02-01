@@ -10,13 +10,13 @@
 namespace diag {
     std::unordered_map<Stage, std::string> StageMap = {
         { Stage::Unknown, "unknown" },
-        { Stage::Tokenization, "tokenization" },
+        { Stage::LexicalAnalysis, "lexical-analysis" },
         { Stage::SyntaxAnalysis, "syntax-analysis" },
     };
 
     std::unordered_map<Stage, char> StageShortNameMap = {
         { Stage::Unknown, 'U' },
-        { Stage::Tokenization, 'T' },
+        { Stage::LexicalAnalysis, 'L' },
         { Stage::SyntaxAnalysis, 'A' },
     };
 

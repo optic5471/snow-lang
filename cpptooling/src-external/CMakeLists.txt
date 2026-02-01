@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Andrew Griffin - All Rights Reserved
+# Copyright (c) 2026 Andrew Griffin - All Rights Reserved
 
 add_library(CppUtils)
 set_target_properties(CppUtils PROPERTIES WIN32_EXECUTABLE OFF)

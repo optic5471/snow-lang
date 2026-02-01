@@ -4,6 +4,22 @@
 #include <snowlib/file/SnowFile.hpp>
 #include <util/Assertions.hpp>
 
+namespace {
+    void _validateLocRangeRange(const file::SnowFile& file, const char* pos, size_t len) {
+        const std::string& contents = file.getFullContents();
+        if ((pos + len) >= (contents.c_str() + contents.size())) {
+            FAIL_IN_PUBLISH("This LocRange is a range which exceeds the file's contents");
+        }
+        else {
+            for (size_t i = 0; i < len; ++i) {
+                if (*(pos + i) == '\n' || *(pos + i) == '\r') {
+                    FAIL_IN_PUBLISH("This LocRange is a range which spans a newline character");
+                }
+            }
+        }
+    }
+}
+
 namespace file {
     Loc::Loc(const SnowFile& file, size_t line, size_t col, const char* pos)
         : mLine(line)
@@ -53,18 +69,13 @@ namespace file {
     LocRange::LocRange(const SnowFile& file, size_t line, size_t col, const char* pos, size_t len)
         : Loc(file, line, col, pos)
         , mLength(len) {
+        ::_validateLocRangeRange(file, pos, len);
+    }
 
-        const std::string& contents = file.getFullContents();
-        if ((pos + len) >= (contents.c_str() + contents.size())) {
-            FAIL_IN_PUBLISH("This LocRange is a range which exceeds the file's contents");
-        }
-        else {
-            for (size_t i = 0; i < len; ++i) {
-                if (*(pos + i) == '\n' || *(pos + i) == '\r') {
-                    FAIL_IN_PUBLISH("This LocRange is a range which spans a newline character");
-                }
-            }
-        }
+    LocRange::LocRange(const Loc& loc, size_t len)
+        : Loc(loc)
+        , mLength(len) {
+        ::_validateLocRangeRange(mFile, mPos, len);
     }
 
     size_t LocRange::len() const {

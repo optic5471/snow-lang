@@ -16,10 +16,10 @@ namespace file {
         util::fs::Path mLocalPath;
         util::fs::Path mFullPath;
 
-        // This only loaded during Tokenization and Syntax Analysis stages after that it is unloaded for memory
+        // This only loaded during Lexical Analysis and Syntax Analysis stages after that it is unloaded for memory
         std::string mFullContents;
 
-        // This is loaded after Tokenization and Syntax Analysis stages
+        // This is loaded after Lexical Analysis and Syntax Analysis stages
         std::shared_ptr<ast::BaseNode> mAst;
 
     public:

@@ -10,7 +10,7 @@
 
 namespace diag {
     std::string syntaxHighlight(const std::string& src) {
-        // TODO: Tokenize, based on tokens assign colors and output string
+        // TODO: Lexical Analysis, based on tokens assign colors and output string
         return src;
 
         /*

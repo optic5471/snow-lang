@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Design/V0.0.6 - Modules and Packages and Files, Oh My!.md",
+                "file": "Design/V0.0.1 - Functions and Variables.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "V0.0.6 - Modules and Packages and Files, Oh My!"
+              "title": "V0.0.1 - Functions and Variables"
             }
           }
         ]
@@ -186,8 +186,8 @@
   },
   "active": "19ef1b51e8d173c1",
   "lastOpenFiles": [
-    "Design/V0.0.3 - Classes.md",
     "Design/V0.0.6 - Modules and Packages and Files, Oh My!.md",
+    "Design/V0.0.3 - Classes.md",
     "Design/Versions for After.md",
     "Design/V0.1.0 - Look Mom! I'm A Real Language!.md",
     "Design/V0.0.1 - Functions and Variables.md",

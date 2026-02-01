@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Andrew Griffin - All Rights Reserved
+# Copyright (c) 2026 Andrew Griffin - All Rights Reserved
 
 cmake_minimum_required(VERSION 4.1.0)
 include(${CMAKE_SOURCE_DIR}/cmake/log.cmake)

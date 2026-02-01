@@ -8,7 +8,7 @@
 namespace diag {
     enum class Stage : uint8_t {
         Unknown = 0,
-        Tokenization,
+        LexicalAnalysis,
         SyntaxAnalysis
     };
 

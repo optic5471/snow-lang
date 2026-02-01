@@ -39,7 +39,7 @@ namespace diag {
             red));
 
 #ifdef TEST_ENABLED
-        add(Type::TEST_Warn, Stage::Tokenization, Level::Warn, "Test warning");
+        add(Type::TEST_Warn, Stage::LexicalAnalysis, Level::Warn, "Test warning");
         add(Type::TEST_UnaryError, Stage::SyntaxAnalysis, Level::Error, util::format<'#'>(
             "Test error with '#{}${}#{}' value",
             cyan, def));
@@ -54,9 +54,9 @@ namespace diag {
 
 
         // -------------------------------
-        // 1000-1999: Tokenization
-        add(Type::Tok_Unknown, Stage::Tokenization, Level::Fatal, util::format<'#'>(
-            "#{}An unknown tokenization error has occurred, please report as this hasnt likely happen before to anyone",
+        // 1000-1999: Lexical Analysis
+        add(Type::LA_Unknown, Stage::LexicalAnalysis, Level::Fatal, util::format<'#'>(
+            "#{}An unknown lexical analsysis error has occurred, please report as this hasnt likely happen before to anyone",
             red));
 
 

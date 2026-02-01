@@ -12,7 +12,7 @@ namespace diag {
     // Naming Scheme:
     // MetaType_ArgCount_Name or MetaType_Name (when arg count is 0)
     // Ex)
-    //   - Tok_MissingLetter, prints no arguments and is from Tokenizer
+    //   - LA_MissingLetter, prints no arguments and is from Lexical Analysis
     //   - SA_1_MismatchClosing, prints with 1 argument and is from Syntax Analysis
     // When an argument count is provided, place a comment above for what each argument is
     enum class Type : uint16_t {
@@ -31,9 +31,9 @@ namespace diag {
 #endif
 
         // -------------------------------
-        // 1000-1999: Tokenization
+        // 1000-1999: Lexical Analysis
         // -------------------------------
-        Tok_Unknown = 1000,
+        LA_Unknown = 1000,
 
 
         // -------------------------------
