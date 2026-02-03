@@ -146,7 +146,7 @@ namespace test {
                 buffer[i] = c;
                 if (mCursor == mFile->mData.size()) {
                     _validateReadSome(i, buffer);
-                    return i;
+                    return i + 1;
                 }
             }
             _validateReadSome(n, buffer);
