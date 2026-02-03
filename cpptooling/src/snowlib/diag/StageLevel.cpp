@@ -17,7 +17,7 @@ namespace diag {
     std::unordered_map<Stage, char> StageShortNameMap = {
         { Stage::Unknown, 'U' },
         { Stage::LexicalAnalysis, 'L' },
-        { Stage::SyntaxAnalysis, 'A' },
+        { Stage::SyntaxAnalysis, 'S' },
     };
 
     std::unordered_map<Level, std::string> LevelMap = {

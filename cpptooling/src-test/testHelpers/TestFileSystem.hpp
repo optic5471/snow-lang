@@ -95,7 +95,7 @@ namespace test {
             std::shared_ptr<File> mFile;
             size_t mCursor = 0;
             std::function<void()> mFlusherFn;
-            virtual void _flush();
+            void _flushFile();
             virtual size_t _getPendingWriteCursor();
         public:
             ~TestFileStream() override;
@@ -121,10 +121,10 @@ namespace test {
         protected:
             std::vector<char> mPendingWrite;
             std::optional<size_t> mPendingWriteCursor;
-            void _flush() override;
             size_t _getPendingWriteCursor() override;
         public:
             TestWriteFileStream();
+            ~TestWriteFileStream() override;
             bool push(char c) override;
             bool flush() override;
         };

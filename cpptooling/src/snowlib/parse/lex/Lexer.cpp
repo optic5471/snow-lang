@@ -52,7 +52,7 @@ namespace parse::lex {
     }
 
     bool Context::valid() const {
-        return mState.pos != nullptr && mState.pos != '\0';
+        return mState.pos != nullptr && *mState.pos != '\0';
     }
 
     void Context::consume(size_t count) {
@@ -253,9 +253,11 @@ namespace parse::lex {
 
     std::optional<Token> Lexer::lexToken(Context& ctx) {
         DEBUG_FAIL("not implemented");
+        return {};
     }
 
-    Token Lexer::_next(Context& ctx) {
-        DEBUG_FAIL("not implemented");
-    }
+    //Token Lexer::_next(Context& ctx) {
+    //    DEBUG_FAIL("not implemented");
+    //    return Token()
+    //}
 }

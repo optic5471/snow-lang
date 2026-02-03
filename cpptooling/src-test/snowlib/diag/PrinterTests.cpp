@@ -33,7 +33,7 @@ namespace test {
             auto log = Log::testOnly_disableTestEndPoint();
 
             auto b = util::cmd::manip::Builder();
-            b.textColorBrightBlue("Internal").text(": ").textColorBrightYellow("T0996")
+            b.textColorBrightBlue("Internal").text(": ").textColorBrightYellow("L0996")
                 .text(": Test warning");
 
             log->expectOneMessageWhichContains(b.str());
@@ -45,7 +45,7 @@ namespace test {
             auto log = Log::testOnly_disableTestEndPoint();
 
             auto b = util::cmd::manip::Builder();
-            b.textColorBrightBlue("In Memory").text(": ").textColorBrightYellow("T0996")
+            b.textColorBrightBlue("In Memory").text(": ").textColorBrightYellow("L0996")
                 .text(": Test warning");
 
             log->expectOneMessageWhichContains(b.str());
@@ -58,7 +58,7 @@ namespace test {
             auto log = Log::testOnly_disableTestEndPoint();
 
             auto b = util::cmd::manip::Builder();
-            b.textColorBrightBlue("In Memory (1|2)").text(": ").textColorBrightYellow("T0996")
+            b.textColorBrightBlue("In Memory (1|2)").text(": ").textColorBrightYellow("L0996")
                 .text(": Test warning").reset().text("\n")
                 .textColorDarkGrey("0001 |").text(" asdf\n")
                 .textColorDarkGrey("     | ").text(" ").textColorBrightGreen("^");
@@ -73,7 +73,7 @@ namespace test {
             auto log = Log::testOnly_disableTestEndPoint();
 
             auto b = util::cmd::manip::Builder();
-            b.textColorBrightBlue("In Memory (1|2)").text(": ").textColorBrightYellow("T0996")
+            b.textColorBrightBlue("In Memory (1|2)").text(": ").textColorBrightYellow("L0996")
                 .text(": Test warning").reset().text("\n")
                 .textColorDarkGrey("0001 |").text(" asdf\n")
                 .textColorDarkGrey("     | ").text(" ").textColorBrightGreen("^").textColorBrightMagenta("~");
@@ -102,7 +102,7 @@ namespace test {
             auto log = Log::testOnly_disableTestEndPoint();
 
             auto b = util::cmd::manip::Builder();
-            b.textColorBrightBlue("In Memory (1|7)").text(": ").textColorBrightRed("A0997")
+            b.textColorBrightBlue("In Memory (1|7)").text(": ").textColorBrightRed("S0997")
                 .text(": Test error with '").textColorBrightCyan("thingy").text("' value").reset().text("\n")
                 .textColorDarkGrey("0001 |").text(" unary p unary\n")
                 .textColorDarkGrey("     | ").text("      ").textColorBrightGreen("^");
@@ -121,7 +121,7 @@ namespace test {
             auto log = Log::testOnly_disableTestEndPoint();
 
             auto b = util::cmd::manip::Builder();
-            b.textColorBrightBlue("In Memory (1|7)").text(": ").textColorBrightRed("A0997")
+            b.textColorBrightBlue("In Memory (1|7)").text(": ").textColorBrightRed("S0997")
                 .text(": Test error with '").textColorBrightCyan("thingy").text("' value").reset().text("\n")
                 .textColorDarkGrey("0001 |").text(" unary p unary\n")
                 .textColorDarkGrey("     | ");
@@ -144,7 +144,7 @@ namespace test {
             auto log = Log::testOnly_disableTestEndPoint();
 
             auto b = util::cmd::manip::Builder();
-            b.textColorBrightBlue("In Memory (1|7)").text(": ").textColorBrightRed("A0997")
+            b.textColorBrightBlue("In Memory (1|7)").text(": ").textColorBrightRed("S0997")
                 .text(": Test error with '").textColorBrightCyan("thingy").text("' value").reset().text("\n")
                 .textColorDarkGrey("0001 |").text(" unary p unary\n")
                 .textColorDarkGrey("     | ").text("      ").textColorBrightGreen("^").text(" ");
@@ -166,7 +166,7 @@ namespace test {
             auto log = Log::testOnly_disableTestEndPoint();
 
             auto b = util::cmd::manip::Builder();
-            b.textColorBrightBlue("In Memory (1|7)").text(": ").textColorBrightRed("A0997")
+            b.textColorBrightBlue("In Memory (1|7)").text(": ").textColorBrightRed("S0997")
                 .text(": Test error with '").textColorBrightCyan("thingy").text("' value").reset().text("\n")
                 .textColorDarkGrey("0001 |").text(" unary p unary\n")
                 .textColorDarkGrey("     | ").text("   ");
@@ -193,7 +193,7 @@ namespace test {
             auto log = Log::testOnly_disableTestEndPoint();
 
             auto b = util::cmd::manip::Builder();
-            b.textColorBrightBlue("In Memory (1|7)").text(": ").textColorBrightRed("A0997")
+            b.textColorBrightBlue("In Memory (1|7)").text(": ").textColorBrightRed("S0997")
                 .text(": Test error with '").textColorBrightCyan("thingy").text("' value").reset().text("\n")
                 .textColorDarkGrey("0001 |").text(" unary p unary\n")
                 .textColorDarkGrey("     | ");
@@ -228,7 +228,7 @@ namespace test {
             auto log = Log::testOnly_disableTestEndPoint();
 
             auto b = util::cmd::manip::Builder();
-            b.textColorBrightBlue("In Memory (2|2)").text(": ").textColorBrightYellow("T0996")
+            b.textColorBrightBlue("In Memory (2|2)").text(": ").textColorBrightYellow("L0996")
                 .text(": Test warning").reset().text("\n")
                 .textColorDarkGrey("0002 |").text(" asdf\n")
                 .textColorDarkGrey("     | ").text(" ").textColorBrightGreen("^").textColorBrightMagenta("~");

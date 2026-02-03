@@ -15,7 +15,7 @@ namespace {
 namespace test {
     const size_t TestFileSystem::OneGig = 1'000'000'000;
 
-    void TestFileSystem::TestFileStream::_flush() {
+    void TestFileSystem::TestFileStream::_flushFile() {
         if (mFlusherFn) {
             mFlusherFn();
         }
@@ -26,7 +26,9 @@ namespace test {
     }
 
     TestFileSystem::TestFileStream::~TestFileStream() {
-        close();
+        if (isOpen()) {
+            mFile.reset();
+        }
     }
 
     bool TestFileSystem::TestFileStream::isOpen() const {
@@ -35,7 +37,7 @@ namespace test {
 
     bool TestFileSystem::TestFileStream::close() {
         if (isOpen()) {
-            _flush();
+            _flushFile();
             mFile.reset();
         }
         return true;
@@ -50,7 +52,7 @@ namespace test {
 
     bool TestFileSystem::TestFileStream::setCursor(size_t position) {
         if (isOpen()) {
-            _flush();
+            _flushFile();
             if (position > mFile->mData.size()) {
                 return false;
             }
@@ -62,7 +64,7 @@ namespace test {
 
     bool TestFileSystem::TestFileStream::setCursorBegin() {
         if (isOpen()) {
-            _flush();
+            _flushFile();
             mCursor = 0;
             return true;
         }
@@ -71,7 +73,7 @@ namespace test {
 
     bool TestFileSystem::TestFileStream::setCursorEnd() {
         if (isOpen()) {
-            _flush();
+            _flushFile();
             mCursor = mFile->mData.size();
             return true;
         }
@@ -302,8 +304,11 @@ namespace test {
         };
     }
 
-    void TestFileSystem::TestWriteFileStream::_flush() {
-        flush();
+    TestFileSystem::TestWriteFileStream::~TestWriteFileStream() {
+        if (isOpen()) {
+            flush();
+            mFile.reset();
+        }
     }
 
     size_t TestFileSystem::TestWriteFileStream::_getPendingWriteCursor() {
