@@ -34,10 +34,33 @@ kanban-plugin: board
 
 ## Current Feature Work
 
+- [ ] Custom Logger, supports verbosity
+- [ ] Compiler flags
+- [ ] Lexer produces all token types, and a Token Emitter
+- [ ] V0.0.1: Parser Stage 1:
+	- Open files as imports come through
+	- Compilations go into a task list, task list is threaded, each file is a task
+	- Parse the files except for the function implementation, and param assignment.
+	- When all files are parsed, assemble the type data.
+	- Result is a partial AST built of mostly types.
+	- Type Parse Emitter outputs all type data collected
+	- Alias, comments, functions, Built in types
+- [ ] V0.0.1: Parser Stage 2:
+	- Built in type usages, variables, functions, casting, loops, defer, panic, std.out, std.err
+	- Finish ast creation
+	- Start ast passes
+	- AST Emitter outputs final AST
+- [ ] Restricted Interpreter:
+	- Can use anything in std, and additional packages provided, nothing else
+	- This point should be able to now build projects for testing and receive ouput
+- [ ] Finish V0.0.1
 
 
 ## Active
 
+- [ ] Change to clang style file loading and locs
+	- Change diags
+	- Redo lex and token
 
 
 ## Complete

@@ -6,6 +6,8 @@
 #include <string>
 #include <variant>
 
+#include <util/meta/meta.hpp>
+
 namespace parse {
     class IntegerLiteral {
         size_t mValue;
@@ -25,7 +27,16 @@ namespace parse {
     };
 
     class LiteralValue {
-        std::variant<IntegerLiteral, bool, std::string, double, char> mData;
+        enum class Type {
+            Int,
+            Bool,
+            String,
+            Double,
+            Char
+        };
+
+        Type mType;
+        char mData[util::meta::max_size_struct<IntegerLiteral, bool, std::string, double, char>::max_size];
 
     public:
         LiteralValue(IntegerLiteral i);

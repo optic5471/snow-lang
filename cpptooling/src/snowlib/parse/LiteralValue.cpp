@@ -45,85 +45,97 @@ namespace parse {
         return -v;
     }
 
-    LiteralValue::LiteralValue(IntegerLiteral i)
-        : mData(i) {
+    LiteralValue::LiteralValue(IntegerLiteral i) {
+        mType = Type::Int;
+        IntegerLiteral* data = reinterpret_cast<IntegerLiteral*>(&mData);
+        *data = i;
     }
 
-    LiteralValue::LiteralValue(size_t intVal, bool isPositive)
-        : mData(IntegerLiteral(intVal, isPositive)) {
+    LiteralValue::LiteralValue(size_t intVal, bool isPositive) {
+        mType = Type::Int;
+        IntegerLiteral* data = reinterpret_cast<IntegerLiteral*>(&mData);
+        *data = IntegerLiteral(intVal, isPositive);
     }
 
-    LiteralValue::LiteralValue(bool b)
-        : mData(b) {
+    LiteralValue::LiteralValue(bool b) {
+        mType = Type::Bool;
+        bool* data = reinterpret_cast<bool*>(&mData);
+        *data = b;
     }
 
-    LiteralValue::LiteralValue(const std::string& s)
-        : mData(s) {
+    LiteralValue::LiteralValue(const std::string& s) {
+        mType = Type::String;
+        std::string* data = reinterpret_cast<std::string*>(&mData);
+        *data = s;
     }
 
-    LiteralValue::LiteralValue(double d)
-        : mData(d) {
+    LiteralValue::LiteralValue(double d) {
+        mType = Type::Double;
+        double* data = reinterpret_cast<double*>(&mData);
+        *data = d;
     }
 
-    LiteralValue::LiteralValue(char c)
-        : mData(c) {
+    LiteralValue::LiteralValue(char c) {
+        mType = Type::Char;
+        char* data = reinterpret_cast<char*>(&mData);
+        *data = c;
     }
 
     bool LiteralValue::isInt() const {
-        return !!std::get_if<IntegerLiteral>(&mData);
+        return mType == Type::Int;
     }
 
     bool LiteralValue::isBool() const {
-        return !!std::get_if<bool>(&mData);
+        return mType == Type::Bool;
     }
 
     bool LiteralValue::isString() const {
-        return !!std::get_if<std::string>(&mData);
+        return mType == Type::String;
     }
 
     bool LiteralValue::isFloat() const {
-        return !!std::get_if<double>(&mData);
+        return mType == Type::Double;
     }
 
     bool LiteralValue::isRune() const {
-        return !!std::get_if<char>(&mData);
+        return mType == Type::Char;
     }
 
     char LiteralValue::asRune() const {
-        if (const char* r = std::get_if<char>(&mData)) {
-            return *r;
+        if (mType == Type::Char) {
+            return *reinterpret_cast<const char*>(&mData);
         }
         DEBUG_FAIL("Not storing a rune");
         return '\0';
     }
 
     bool LiteralValue::asBool() const {
-        if (const bool* r = std::get_if<bool>(&mData)) {
-            return *r;
+        if (mType == Type::Bool) {
+            return *reinterpret_cast<const bool*>(&mData);
         }
         DEBUG_FAIL("Not storing a boolean");
         return false;
     }
 
     const std::string& LiteralValue::asString() const {
-        if (const std::string* r = std::get_if<std::string>(&mData)) {
-            return *r;
+        if (mType == Type::String) {
+            return *reinterpret_cast<const std::string*>(&mData);
         }
         DEBUG_FAIL("Not storing a string");
         return util::EMPTY_STRING;
     }
 
     const IntegerLiteral& LiteralValue::asInt() const {
-        if (const IntegerLiteral* r = std::get_if<IntegerLiteral>(&mData)) {
-            return *r;
+        if (mType == Type::Int) {
+            return *reinterpret_cast<const IntegerLiteral*>(&mData);
         }
         DEBUG_FAIL("Not storing an int");
         return IntegerLiteral::INVALID;
     }
 
     double LiteralValue::asFloat() const {
-        if (const double* r = std::get_if<double>(&mData)) {
-            return *r;
+        if (mType == Type::Double) {
+            return *reinterpret_cast<const double*>(&mData);
         }
         DEBUG_FAIL("Not storing a double");
         return 0.0;
