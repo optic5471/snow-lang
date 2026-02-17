@@ -105,82 +105,94 @@ namespace diag {
                 size_t lineNum;
                 std::string src;
                 size_t whitespaceCountAtBeginning;
-                const file::SnowFile* file = nullptr;
+                std::optional<src::FileID> file;
             };
 
             std::optional<LocationData> locationData;
             std::string locationName;
-            auto locLocationParser = [&locationData, &locationName, level = diagDesc.mLevel](const file::Loc& loc) {
-                LocationData data;
-                data.lineNum = loc.line();
-                data.col = loc.col();
-                data.file = &loc.file();
+            auto locLocationParser = [&locationData, &locationName, level = diagDesc.mLevel](src::Loc loc) {
+                auto [line, col] = src::SourceVault::fetch().getLineCol(loc);
+                const src::FileEntry* fileData = src::SourceVault::fetch().tryGetFileData(loc.mFileID);
+                if (!fileData || col == 0) {
+                    return;
+                }
 
-                std::string fullLine = loc.getFullLine();
+                LocationData data;
+                data.lineNum = line;
+                data.col = col;
+                data.file = loc.mFileID;
+
+                std::string fullLine = std::string(src::SourceVault::fetch().getLineAt(loc));
                 auto [strippedLine, wsCount] = _stripAndCountBeginningWhitespace(fullLine);
                 data.whitespaceCountAtBeginning = wsCount;
                 data.src = syntaxHighlight(util::trimWhitespaceEnd(strippedLine));
 
                 locationData = std::move(data);
-                locationName = util::format("${} (${}|${})", loc.file().localPath().str(), loc.line(), loc.col());
-
-                if (level == Level::Error || level == Level::Fatal) {
-                    loc.file().setErrored();
-                }
+                locationName = util::format("${} (${}|${})", fileData->mPath.str(), line, col);
             };
 
-            if (const util::RefWrap<file::Loc>* locData = std::get_if<util::RefWrap<file::Loc>>(&args.mAt)) {
-                locLocationParser(**locData);
+            if (const src::Loc* locData = std::get_if<src::Loc>(&args.mAt)) {
+                locLocationParser(*locData);
 
-                const file::Loc& l = **locData;
-                auto checkRange = [&](const file::LocRange& r) -> bool {
-                    if (l.line() != r.line()) {
-                        FAIL_IN_PUBLISH("A diag provided with ranges must come from the same line, use supplemental diags for multi-line");
-                        return false;
-                    }
-                    else if (&l.file() != &r.file()) {
-                        FAIL_IN_PUBLISH("A diag provided with ranges, must have ranges and loc come from the same file");
-                        return false;
-                    }
-                    return true;
-                };
+                if (locationData.has_value()) {
+                    auto checkRange = [&](src::LocRange r) -> bool {
+                        auto [rline, rcol] = src::SourceVault::fetch().getLineCol(r);
+                        if (locationData->lineNum != rline) {
+                            FAIL_IN_PUBLISH("A diag provided with ranges must come from the same line, use supplemental diags for multi-line");
+                            return false;
+                        }
+                        else if (locData->mFileID != r.mFileID) {
+                            FAIL_IN_PUBLISH("A diag provided with ranges, must have ranges and loc come from the same file");
+                            return false;
+                        }
+                        return true;
+                    };
 
-                if (args.mRange1.has_value()) {
-                    if (!checkRange(**args.mRange1)) {
-                        return;
+                    if (args.mRange1.has_value()) {
+                        if (!checkRange(*args.mRange1)) {
+                            return;
+                        }
                     }
-                }
-                if (args.mRange2.has_value()) {
-                    if (!checkRange(**args.mRange2)) {
-                        return;
+                    if (args.mRange2.has_value()) {
+                        if (!checkRange(*args.mRange2)) {
+                            return;
+                        }
                     }
                 }
             }
-            else if (const util::RefWrap<file::SnowFile>* fileData = std::get_if<util::RefWrap<file::SnowFile>>(&args.mAt)) {
-                locationName = (*fileData)->localPath().str();
-
-                if (diagDesc.mLevel == Level::Error || diagDesc.mLevel == Level::Fatal) {
-                    (*fileData)->setErrored();
+            else if (const src::FileID* fileData = std::get_if<src::FileID>(&args.mAt)) {
+                const src::FileEntry* file = src::SourceVault::fetch().tryGetFileData(*fileData);
+                if (!file) {
+                    DEBUG_FAIL("Trying to diag against an empty file");
+                    Log::error("Attempting to create a diag from an unknown file");
+                    return;
                 }
 
+                locationName = file->mPath.str();
                 if (args.mRange1.has_value()) {
                     FAIL_IN_PUBLISH("A diag provided with only a file cannot use ranges");
                     return;
                 }
             }
             else if (args.mRange1.has_value()) {
-                const file::LocRange& r1 = **args.mRange1;
-                locLocationParser(**args.mRange1);
+                src::LocRange r1 = *args.mRange1;
+                locLocationParser(*args.mRange1);
 
-                if (args.mRange2.has_value()) {
-                    const file::LocRange& r2 = **args.mRange2;
-                    if (&r1.file() != &r2.file()) {
-                        FAIL_IN_PUBLISH("A diag provided with ranges, must have both ranges come from the same file");
-                        return;
-                    }
-                    else if (r1.line() != r2.line()) {
-                        FAIL_IN_PUBLISH("A diag provided with ranges must come from the same line, use supplemental diags for multi-line");
-                        return;
+                if (locationData.has_value()) {
+                    if (args.mRange2.has_value()) {
+                        src::LocRange r2 = *args.mRange2;
+
+                        auto [line1, col1] = src::SourceVault::fetch().getLineCol(r1);
+                        auto [line2, col2] = src::SourceVault::fetch().getLineCol(r2);
+
+                        if (r1.mFileID != r2.mFileID) {
+                            FAIL_IN_PUBLISH("A diag provided with ranges, must have both ranges come from the same file");
+                            return;
+                        }
+                        else if (line1 != line2) {
+                            FAIL_IN_PUBLISH("A diag provided with ranges must come from the same line, use supplemental diags for multi-line");
+                            return;
+                        }
                     }
                 }
             }
@@ -230,6 +242,17 @@ namespace diag {
                     locationData->src
                 );
 
+                uint32_t col1 = 0;
+                uint32_t col2 = 0;
+                if (args.mRange1.has_value()) {
+                    auto [line, col] = src::SourceVault::fetch().getLineCol(args.mRange1.value());
+                    col1 = col;
+                }
+                if (args.mRange2.has_value()) {
+                    auto [line, col] = src::SourceVault::fetch().getLineCol(args.mRange2.value());
+                    col2 = col;
+                }
+
                 std::string positionData;
                 positionData.reserve(locationData->src.size());
                 for (size_t i = 0; i < locationData->src.size(); ++i) {
@@ -238,8 +261,8 @@ namespace diag {
 
                     bool range1Invalid = false;
                     if (args.mRange1.has_value()) {
-                        size_t rstart = (*args.mRange1)->col() - 1;
-                        size_t rend = (rstart + (*args.mRange1)->len());
+                        size_t rstart = col1 - 1;
+                        size_t rend = (rstart + args.mRange1->mLength);
                         if (pos > rend) {
                             range1Invalid = true;
                         }
@@ -249,8 +272,8 @@ namespace diag {
                     }
                     bool range2Invalid = false;
                     if (args.mRange2.has_value()) {
-                        size_t rstart = (*args.mRange2)->col() - 1;
-                        size_t rend = (rstart + (*args.mRange2)->len());
+                        size_t rstart = col2 - 1;
+                        size_t rend = (rstart + args.mRange2->mLength);
                         if (pos > rend) {
                             range2Invalid = true;
                         }

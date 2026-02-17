@@ -6,8 +6,8 @@
 #include <optional>
 #include <variant>
 
-#include <snowlib/file/Loc.hpp>
-#include <snowlib/file/SnowFile.hpp>
+#include <snowlib/src/Loc.hpp>
+#include <snowlib/src/SourceVault.hpp>
 #include <util/NotNull.hpp>
 #include <util/String.hpp>
 
@@ -18,10 +18,10 @@ namespace diag {
         struct MakeArgs {
             std::variant<
                 std::monostate,
-                util::RefWrap<file::SnowFile>,
-                util::RefWrap<file::Loc>> mAt;
-            std::optional<util::RefWrap<file::LocRange>> mRange1;
-            std::optional<util::RefWrap<file::LocRange>> mRange2;
+                src::FileID,
+                src::Loc> mAt;
+            std::optional<src::LocRange> mRange1;
+            std::optional<src::LocRange> mRange2;
             std::vector<std::string> mArgs;
             Type mType;
         };
@@ -52,14 +52,14 @@ namespace diag {
         template <size_t depth, typename tArg, typename... tArgs>
         void constructMakeArgs(MakeArgs& out, bool parseToArgs, tArg&& arg, tArgs&&... args) {
             if constexpr (depth == 0) {
-                if constexpr (std::is_same_v<std::decay_t<tArg>, file::SnowFile>) {
-                    out.mAt = util::RefWrap<file::SnowFile>(arg);
+                if constexpr (std::is_same_v<std::decay_t<tArg>, src::FileID>) {
+                    out.mAt = arg;
                 }
-                else if constexpr (std::is_same_v<std::decay_t<tArg>, file::Loc>) {
-                    out.mAt = util::RefWrap<file::Loc>(arg);
+                else if constexpr (std::is_same_v<std::decay_t<tArg>, src::Loc>) {
+                    out.mAt = arg;
                 }
-                else if constexpr (std::is_same_v<std::decay_t<tArg>, file::LocRange>) {
-                    out.mRange1 = util::RefWrap<file::LocRange>(arg);
+                else if constexpr (std::is_same_v<std::decay_t<tArg>, src::LocRange>) {
+                    out.mRange1 = arg;
                 }
                 else {
                     parseToArgs = true;
@@ -67,15 +67,15 @@ namespace diag {
                 }
             }
             else if constexpr (depth == 1) {
-                if constexpr (std::is_same_v<std::decay_t<tArg>, file::LocRange>) {
+                if constexpr (std::is_same_v<std::decay_t<tArg>, src::LocRange>) {
                     if (parseToArgs) {
                         DEBUG_FAIL("Range was provided after arguments. Please define all ranges before arguments");
                     }
                     else if (out.mRange1.has_value()) {
-                        out.mRange2 = util::RefWrap<file::LocRange>(arg);
+                        out.mRange2 = arg;
                     }
                     else {
-                        out.mRange1 = util::RefWrap<file::LocRange>(arg);
+                        out.mRange1 = arg;
                     }
                 }
                 else {
@@ -84,7 +84,7 @@ namespace diag {
                 }
             }
             else if constexpr (depth == 2) {
-                if constexpr (std::is_same_v<std::decay_t<tArg>, file::LocRange>) {
+                if constexpr (std::is_same_v<std::decay_t<tArg>, src::LocRange>) {
                     if (parseToArgs) {
                         DEBUG_FAIL("Range was provided after arguments. Please define all ranges before arguments");
                     }
@@ -92,7 +92,7 @@ namespace diag {
                         DEBUG_FAIL("Too many ranges have been provided");
                     }
                     else {
-                        out.mRange2 = util::RefWrap<file::LocRange>(arg);
+                        out.mRange2 = arg;
                     }
                 }
                 else {

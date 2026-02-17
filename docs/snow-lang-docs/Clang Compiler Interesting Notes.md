@@ -1,7 +1,7 @@
 
 - In clang they have the SourceManager class which handles all file locations and even macro expansions. While I don't need the macro expansion part it is interesting that it handles that part too.
 - SourceManager also handles columns and lines at on demand instead of caching that in a Loc.
-- It separates files buffers a memory buffers into their own buffer readers. It does however make each an uniqe id (int32). A source location is then just an int64; the first 32 bits are the file id the location represents and the offset into the file or buffer in bytes. This is enough information to then look up what buffer to use and where in the buffer.
+- It separates files buffers a memory buffers into their own buffer readers. It does however make each an unique id (int32). A source location is then just an int64; the first 32 bits are the file id the location represents and the offset into the file or buffer in bytes. This is enough information to then look up what buffer to use and where in the buffer.
 - A range is simply 2 locs, representing the \[begin, end) of the range.
 - My lang only compiles files one at a time, with no need to revisit them so I dont need to cache file data.
 - FileEntry represents a file on disk. It stores the path, size, last modification time, and a unique id.

@@ -4,7 +4,6 @@
 #include <testInfra/TestInfra.hpp>
 
 #include <snowlib/diag/Diag.hpp>
-#include <snowlib/file/SnowFile.hpp>
 #include <test/testHelpers/TestAssertHandler.hpp>
 #include <util/cmd/manip.hpp>
 
@@ -40,8 +39,9 @@ namespace test {
         }
 
         TEST(Diag_WarnFile_PrintsOkay) {
-            auto f = file::SnowFile::FromString("asdf");
-            diag::make(diag::Type::TEST_Warn, f);
+            src::SourceVault v;
+            auto f = v.loadMemory("asdf");
+            diag::make(diag::Type::TEST_Warn, *f);
             auto log = Log::testOnly_disableTestEndPoint();
 
             auto b = util::cmd::manip::Builder();
@@ -52,8 +52,9 @@ namespace test {
         }
 
         TEST(Diag_WarnLoc_PrintsOkay) {
-            auto f = file::SnowFile::FromString("asdf");
-            auto l = file::Loc(f, 1, 2, f.getFullContents().c_str() + 1);
+            src::SourceVault v;
+            auto f = v.loadMemory("asdf");
+            auto l = src::Loc{ *f, 1 };
             diag::make(diag::Type::TEST_Warn, l);
             auto log = Log::testOnly_disableTestEndPoint();
 
@@ -67,8 +68,9 @@ namespace test {
         }
 
         TEST(Diag_WarnLocRange_PrintsOkay) {
-            auto f = file::SnowFile::FromString("asdf");
-            auto l = file::LocRange(f, 1, 2, f.getFullContents().c_str() + 1, 2);
+            src::SourceVault v;
+            auto f = v.loadMemory("asdf");
+            auto l = src::LocRange{ *f, 1, 2 };
             diag::make(diag::Type::TEST_Warn, l);
             auto log = Log::testOnly_disableTestEndPoint();
 
@@ -93,10 +95,11 @@ namespace test {
         }
 
         TEST(Diag_Unary_PrintsOkay) {
+            src::SourceVault v;
             //               0123456789012
             std::string s = "unary p unary";
-            auto f = file::SnowFile::FromString(s);
-            auto l = file::Loc(f, 1, 7, f.getFullContents().c_str() + 6);
+            auto f = v.loadMemory(s);
+            auto l = src::Loc{ *f, 6 };
 
             diag::make(diag::Type::TEST_UnaryError, l, "thingy");
             auto log = Log::testOnly_disableTestEndPoint();
@@ -111,11 +114,12 @@ namespace test {
         }
 
         TEST(Diag_UnaryRangeBefore_PrintsOkay) {
+            src::SourceVault v;
             //               0123456789012
             std::string s = "unary p unary";
-            auto f = file::SnowFile::FromString(s);
-            auto l = file::Loc(f, 1, 7, f.getFullContents().c_str() + 6);
-            auto r = file::LocRange(f, 1, 1, f.getFullContents().c_str(), 5);
+            auto f = v.loadMemory(s);
+            auto l = src::Loc(*f, 6);
+            auto r = src::LocRange(*f, 0, 5);
 
             diag::make(diag::Type::TEST_UnaryError, l, r, "thingy");
             auto log = Log::testOnly_disableTestEndPoint();
@@ -134,11 +138,12 @@ namespace test {
         }
 
         TEST(Diag_UnaryRangeAfter_PrintsOkay) {
+            src::SourceVault v;
             //               0123456789012
             std::string s = "unary p unary";
-            auto f = file::SnowFile::FromString(s);
-            auto l = file::Loc(f, 1, 7, f.getFullContents().c_str() + 6);
-            auto r = file::LocRange(f, 1, 9, f.getFullContents().c_str() + 7, 5);
+            auto f = v.loadMemory(s);
+            auto l = src::Loc(*f, 6);
+            auto r = src::LocRange(*f, 7, 5);
 
             diag::make(diag::Type::TEST_UnaryError, l, r, "thingy");
             auto log = Log::testOnly_disableTestEndPoint();
@@ -156,11 +161,12 @@ namespace test {
         }
 
         TEST(Diag_UnaryRangeMix_PrintsOkay) {
+            src::SourceVault v;
             //               0123456789012
             std::string s = "unary p unary";
-            auto f = file::SnowFile::FromString(s);
-            auto l = file::Loc(f, 1, 7, f.getFullContents().c_str() + 6);
-            auto r = file::LocRange(f, 1, 4, f.getFullContents().c_str() + 2, 7);
+            auto f = v.loadMemory(s);
+            auto l = src::Loc(*f, 6);
+            auto r = src::LocRange(*f, 2, 7);
 
             diag::make(diag::Type::TEST_UnaryError, l, r, "thingy");
             auto log = Log::testOnly_disableTestEndPoint();
@@ -182,12 +188,13 @@ namespace test {
         }
 
         TEST(Diag_UnaryRangeDual_PrintsOkay) {
+            src::SourceVault v;
             //               0123456789012
             std::string s = "unary p unary";
-            auto f = file::SnowFile::FromString(s);
-            auto l = file::Loc(f, 1, 7, f.getFullContents().c_str() + 6);
-            auto r1 = file::LocRange(f, 1, 1, f.getFullContents().c_str(), 5);
-            auto r2 = file::LocRange(f, 1, 9, f.getFullContents().c_str() + 7, 5);
+            auto f = v.loadMemory(s);
+            auto l = src::Loc(*f, 6);
+            auto r1 = src::LocRange(*f, 0, 5);
+            auto r2 = src::LocRange(*f, 7, 5);
 
             diag::make(diag::Type::TEST_UnaryError, l, r1, r2, "thingy");
             auto log = Log::testOnly_disableTestEndPoint();
@@ -222,8 +229,9 @@ namespace test {
 
         // exactly the same test as Diag_WarnLocRange_PrintsOkay
         TEST(Diag_MultiLineFile_PrintsOkay) {
-            auto f = file::SnowFile::FromString("when in the summer\n\rasdf\n\rI find myself wondering");
-            auto l = file::LocRange(f, 2, 2, f.getFullContents().c_str() + 21, 2);
+            src::SourceVault v;
+            auto f = v.loadMemory("when in the summer\n\rasdf\n\rI find myself wondering");
+            auto l = src::LocRange(*f, 21, 2);
             diag::make(diag::Type::TEST_Warn, l);
             auto log = Log::testOnly_disableTestEndPoint();
 
@@ -237,109 +245,119 @@ namespace test {
         }
 
         TEST(Diag_ArgsThenRange_Fails) {
+            src::SourceVault v;
             AssertHandler handler;
             std::string s = "unary p unary";
-            auto f = file::SnowFile::FromString(s);
-            auto l = file::Loc(f, 1, 7, f.getFullContents().c_str() + 6);
-            auto r = file::LocRange(f, 1, 1, f.getFullContents().c_str(), 5);
+            auto f = v.loadMemory(s);
+            auto l = src::Loc(*f, 6);
+            auto r = src::LocRange(*f, 0, 5);
 
             diag::make(diag::Type::TEST_UnaryError, l, "thingy", r);
             handler.expectOneMessageWhichContains("Range was provided after arguments. Please define all ranges before arguments");
         }
 
         TEST(Diag_RangeArgRange_Fails) {
+            src::SourceVault v;
             AssertHandler handler;
             std::string s = "unary p unary";
-            auto f = file::SnowFile::FromString(s);
-            auto r1 = file::LocRange(f, 1, 1, f.getFullContents().c_str(), 5);
-            auto r2 = file::LocRange(f, 1, 3, f.getFullContents().c_str(), 5);
+            auto f = v.loadMemory(s);
+            auto r1 = src::LocRange(*f, 0, 5);
+            auto r2 = src::LocRange(*f, 0, 5);
 
             diag::make(diag::Type::TEST_UnaryError, r1, "thingy", r2);
             handler.expectOneMessageWhichContains("Range was provided after arguments. Please define all ranges before arguments");
         }
 
         TEST(Diag_TooManyRanges_Fails) {
+            src::SourceVault v;
             AssertHandler handler;
             std::string s = "unary p unary";
-            auto f = file::SnowFile::FromString(s);
-            auto r1 = file::LocRange(f, 1, 1, f.getFullContents().c_str(), 5);
-            auto r2 = file::LocRange(f, 1, 3, f.getFullContents().c_str(), 5);
-            auto r3 = file::LocRange(f, 1, 5, f.getFullContents().c_str(), 5);
+            auto f = v.loadMemory(s);
+            auto r1 = src::LocRange(*f, 0, 5);
+            auto r2 = src::LocRange(*f, 0, 5);
+            auto r3 = src::LocRange(*f, 0, 5);
 
             diag::make(diag::Type::TEST_UnaryError, r1, r2, r3, "thingy");
             handler.expectOneMessageWhichContains("Too many ranges have been provided");
         }
 
         TEST(Diag_LocAndRangeDifferentLine_Fails) {
+            src::SourceVault v;
             AssertHandler handler;
             std::string s = "unary p unary\nasdf";
-            auto f = file::SnowFile::FromString(s);
-            auto l = file::Loc(f, 1, 7, f.getFullContents().c_str() + 6);
-            auto r1 = file::LocRange(f, 2, 1, f.getFullContents().c_str() + 14, 2);
+            auto f = v.loadMemory(s);
+            auto l = src::Loc(*f, 6);
+            auto r1 = src::LocRange(*f, 14, 2);
             diag::make(diag::Type::TEST_UnaryError, l, r1, "Thingy");
             handler.expectOneMessageWhichContains("A diag provided with ranges must come from the same line, use supplemental diags for multi-line");
         }
         TEST(Diag_LocAndRange2DifferentLine_Fails) {
+            src::SourceVault v;
             AssertHandler handler;
             std::string s = "unary p unary\nasdf";
-            auto f = file::SnowFile::FromString(s);
-            auto l = file::Loc(f, 1, 7, f.getFullContents().c_str() + 6);
-            auto r1 = file::LocRange(f, 1, 1, f.getFullContents().c_str(), 2);
-            auto r2 = file::LocRange(f, 2, 1, f.getFullContents().c_str() + 14, 2);
+            auto f = v.loadMemory(s);
+            auto l = src::Loc(*f, 6);
+            auto r1 = src::LocRange(*f, 0, 2);
+            auto r2 = src::LocRange(*f, 14, 2);
             diag::make(diag::Type::TEST_UnaryError, l, r1, r2, "Thingy");
             handler.expectOneMessageWhichContains("A diag provided with ranges must come from the same line, use supplemental diags for multi-line");
         }
 
         TEST(Diag_LocAndRangeDifferentFile_Fails) {
+            src::SourceVault v;
             AssertHandler handler;
             std::string s = "unary p unary";
             std::string s2 = "22222";
-            auto f1 = file::SnowFile::FromString(s);
-            auto f2 = file::SnowFile::FromString(s);
-            auto l = file::Loc(f1, 1, 7, f1.getFullContents().c_str() + 6);
-            auto r1 = file::LocRange(f2, 1, 1, f2.getFullContents().c_str(), 2);
+            auto f1 = v.loadMemory(s);
+            auto f2 = v.loadMemory(s);
+            auto l = src::Loc(*f1, 6);
+            auto r1 = src::LocRange(*f2, 0, 2);
             diag::make(diag::Type::TEST_UnaryError, l, r1, "Thingy");
             handler.expectOneMessageWhichContains("A diag provided with ranges, must have ranges and loc come from the same file");
         }
         TEST(Diag_LocAndRange2DifferentFile_Fails) {
+            src::SourceVault v;
             AssertHandler handler;
             std::string s = "unary p unary";
             std::string s2 = "22222";
-            auto f1 = file::SnowFile::FromString(s);
-            auto f2 = file::SnowFile::FromString(s);
-            auto l = file::Loc(f1, 1, 7, f1.getFullContents().c_str() + 6);
-            auto r1 = file::LocRange(f1, 1, 1, f1.getFullContents().c_str(), 2);
-            auto r2 = file::LocRange(f2, 1, 3, f2.getFullContents().c_str() + 2, 2);
+            auto f1 = v.loadMemory(s);
+            auto f2 = v.loadMemory(s);
+            auto l = src::Loc(*f1, 6);
+            auto r1 = src::LocRange(*f1, 0, 2);
+            auto r2 = src::LocRange(*f2, 2, 2);
             diag::make(diag::Type::TEST_UnaryError, l, r1, r2, "Thingy");
             handler.expectOneMessageWhichContains("A diag provided with ranges, must have ranges and loc come from the same file");
         }
 
         TEST(Diag_FileAndRange_Fails) {
+            src::SourceVault v;
             AssertHandler handler;
             std::string s = "unary p unary";
-            auto f = file::SnowFile::FromString(s);
-            auto r1 = file::LocRange(f, 1, 1, f.getFullContents().c_str(), 2);
-            diag::make(diag::Type::TEST_UnaryError, f, r1, "Thingy");
+            auto f = v.loadMemory(s);
+            auto r1 = src::LocRange(*f, 0, 2);
+            diag::make(diag::Type::TEST_UnaryError, *f, r1, "Thingy");
             handler.expectOneMessageWhichContains("A diag provided with only a file cannot use ranges");
         }
 
         TEST(Diag_RangesWithDifferentLines_Fails) {
+            src::SourceVault v;
             AssertHandler handler;
             std::string s = "unary p unary\nasdf";
-            auto f = file::SnowFile::FromString(s);
-            auto r1 = file::LocRange(f, 1, 1, f.getFullContents().c_str(), 2);
-            auto r2 = file::LocRange(f, 2, 1, f.getFullContents().c_str() + 14, 2);
+            auto f = v.loadMemory(s);
+            auto r1 = src::LocRange(*f, 0, 2);
+            auto r2 = src::LocRange(*f, 14, 2);
             diag::make(diag::Type::TEST_UnaryError, r1, r2, "Thingy");
             handler.expectOneMessageWhichContains("A diag provided with ranges must come from the same line, use supplemental diags for multi-line");
         }
 
         TEST(Diag_RangesWithDifferentFiles_Fails) {
+            src::SourceVault v;
             AssertHandler handler;
             std::string s = "unary p unary\nasdf";
-            auto f1 = file::SnowFile::FromString(s);
-            auto f2 = file::SnowFile::FromString(s);
-            auto r1 = file::LocRange(f1, 1, 1, f1.getFullContents().c_str(), 2);
-            auto r2 = file::LocRange(f2, 1, 1, f2.getFullContents().c_str(), 2);
+            auto f1 = v.loadMemory(s);
+            auto f2 = v.loadMemory(s);
+            auto r1 = src::LocRange(*f1, 0, 2);
+            auto r2 = src::LocRange(*f2, 0, 2);
             diag::make(diag::Type::TEST_UnaryError, r1, r2, "Thingy");
             handler.expectOneMessageWhichContains("A diag provided with ranges, must have both ranges come from the same file");
         }
