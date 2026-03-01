@@ -3,6 +3,8 @@
 
 #include <snowlib/src/SourceVault.hpp>
 
+#include <utility>
+
 namespace src {
     std::tuple<uint32_t, uint32_t> SourceVault::getLineCol(Loc l) const {
         const FileEntry* file = tryGetFileData(l.mFileID);
@@ -10,74 +12,33 @@ namespace src {
             DEBUG_FAIL("How do you have a loc for a non-existant file?");
             return { 0, 0 };
         }
+
+        if (file->mContents.empty()) {
+            return { 1, 0 };
+        }
         else if (file->mContents.size() <= l.mOffset) {
             DEBUG_FAIL("Attempting to reach beyond the file's length!");
             return { 0, 0 };
         }
-        // emtpy files have 1 line in most editors
-        else if (file->mContents.empty()) {
-            return { 1, 0 };
-        }
-        // only line in the table
-        else if (file->mNewLineTable.empty()) {
-            return { 1, l.mOffset };
-        }
-        // only 1 newline in file, use faster algorithm
-        else if (file->mNewLineTable.size() == 1) {
-            if (file->mNewLineTable[0] > l.mOffset) {
-                return { 1, l.mOffset + 1 };
-            }
-            return { 2, l.mOffset - file->mNewLineTable[0] + 1 };
-        }
-        // only 2 newlines in file, use faster algorithm
-        else if (file->mNewLineTable.size() == 2) {
-            if (file->mNewLineTable[0] > l.mOffset) {
-                return { 1, l.mOffset + 1 };
-            }
-            else if (file->mNewLineTable[1] > l.mOffset) {
-                return { 2, l.mOffset + 1 };
-            }
-            return { 3, l.mOffset - file->mNewLineTable[1] + 1 };
-        }
-        // comes after last newline in file, use faster algorithm
-        else if (file->mNewLineTable.back() <= l.mOffset) {
-            return {
-                file->mNewLineTable.size() + 1,
-                l.mOffset - file->mNewLineTable.back() + 1
-            };
+
+        // one line only
+        if (file->mNewLineTable.empty()) {
+            return { 1, l.mOffset + 1 };
         }
 
-        // binary search
-        size_t left = 0;
-        size_t right = file->mNewLineTable.size() - 1;
-        size_t result = -1;
+        auto it = std::lower_bound(file->mNewLineTable.begin(), file->mNewLineTable.end(), l.mOffset + 1);
+        uint32_t line = static_cast<uint32_t>(it - file->mNewLineTable.begin()) + 1;
 
-        while (left <= right) {
-            size_t mid = left + (right - left) / 2;
-            if (file->mNewLineTable[mid] <= l.mOffset) {
-                result = mid;
-                left = mid + 1; // research right
-            }
-            else {
-                right = mid - 1; // research left
-            }
+        if (line == 1) {
+            return { 1, l.mOffset + 1 };
         }
-
-        if (result >= file->mNewLineTable.size() - 1) {
-            DEBUG_FAIL("How did we end up here, previous if should have caught");
-            return {
-                static_cast<uint32_t>(file->mNewLineTable.size() + 1),
-                l.mOffset - file->mNewLineTable.back() + 1
-            };
-        }
-        else if (result == -1) {
-            DEBUG_FAIL("Im not sure how we get here");
-            return { 0, 0 };
+        else if (it == file->mNewLineTable.end()) {
+            return { line, (l.mOffset - file->mNewLineTable.back()) + 1 };
         }
 
         return {
-            static_cast<uint32_t>(result + 1),
-            l.mOffset - file->mNewLineTable[result] + 1
+            line,
+            l.mOffset - *it
         };
     }
 
@@ -125,10 +86,10 @@ namespace src {
             return "";
         }
 
-        while (file->mContents[start] == '\r' && start < file->mContents.size()) {
+        while (start < file->mContents.size() && file->mContents[start] == '\r') {
             start++;
         }
-        while (file->mContents[end - 1] == '\r' && end > 1) {
+        while (end > 1 && file->mContents[end - 1] == '\r') {
             end--;
         }
 

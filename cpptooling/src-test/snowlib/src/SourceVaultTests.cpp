@@ -96,6 +96,80 @@ namespace test {
             EXPECT_EQ(lexeme, "34\n12");
         }
 
+        void _lineCol(src::SourceVault& v, uint32_t pos, uint32_t l, uint32_t c) {
+            auto [line, col] = v.getLineCol({ 1, pos });
+            EXPECT_EQ(line, l);
+            EXPECT_EQ(col, c);
+        }
+
+        TEST(SourceVault_PosEmptyFile_Works) {
+            src::SourceVault v;
+            std::optional<src::FileID> id = v.loadMemory("");
+            ASSERT_EQ(1, id);
+            _lineCol(v, 0, 1, 0);
+        }
+
+        void _lineColForLine(src::SourceVault& v, uint32_t lineNum, uint32_t beginOfLine, uint32_t endOfLine) {
+            // begin
+            _lineCol(v, beginOfLine, lineNum, 1);
+
+            // end
+            _lineCol(v, endOfLine, lineNum, endOfLine - beginOfLine + 1);
+
+            // middle
+            uint32_t x = ((endOfLine - beginOfLine) / 2);
+            _lineCol(v, beginOfLine + x, lineNum, x + 1);
+        }
+
+        TEST(SourceVault_PosOneLineFile_Works) {
+            src::SourceVault v;
+            std::optional<src::FileID> id = v.loadMemory("12345");
+            ASSERT_EQ(1, id);
+            _lineColForLine(v, 1, 0, 4);
+        }
+
+        TEST(SourceVault_PosTwoLineFile_WorksOnBothLines) {
+            src::SourceVault v;                        // 012345 67890
+            std::optional<src::FileID> id = v.loadMemory("12345\n67890");
+            ASSERT_EQ(1, id);
+            _lineColForLine(v, 1, 0, 5);
+            _lineColForLine(v, 2, 6, 10);
+        }
+
+        TEST(SourceVault_PosThreeLineFile_WorksOnAllLines) {
+            src::SourceVault v;                        // 012345 678901 23456
+            std::optional<src::FileID> id = v.loadMemory("12345\n67890\nabcde");
+            ASSERT_EQ(1, id);
+            _lineColForLine(v, 1, 0, 5);
+            _lineColForLine(v, 2, 6, 11);
+            _lineColForLine(v, 3, 12, 16);
+        }
+
+        TEST(SourceVault_PosMultiLineFile_WorksOnLastLine) {
+            src::SourceVault v;                        // 012345 678901 234567 89012
+            std::optional<src::FileID> id = v.loadMemory("12345\n67890\nabcde\nfghik");
+            ASSERT_EQ(1, id);
+            _lineColForLine(v, 1, 0, 5);
+            _lineColForLine(v, 2, 6, 11);
+            _lineColForLine(v, 3, 12, 17);
+            _lineColForLine(v, 4, 18, 22);
+        }
+
+        TEST(SourceVault_PosStress_Works) {
+            std::string fileData;
+            for (size_t i = 0; i < 50; ++i) {
+                //           01234567890123456789
+                fileData += "0123456789abcdefghi\n";
+            }
+
+            src::SourceVault v;
+            std::optional<src::FileID> id = v.loadMemory(fileData);
+            ASSERT_EQ(1, id);
+            for (size_t i = 0; i < 49; ++i) {
+                _lineColForLine(v, i + 1, (i * 20), ((i + 1) * 20));
+            }
+        }
+
         TEST(SourceVault_GetLineAt_Index0_Works) {
             src::SourceVault v;
             std::optional<src::FileID> id = v.loadMemory("1234\n1234");
@@ -152,13 +226,17 @@ namespace test {
             EXPECT_TRUE(line.empty());
         }
 
-        TEST(SourceVault_GetLineAt_GetNewLinePosition_ReturnsNextLine) {
+        TEST(SourceVault_GetLineAt_GetNewLinePosition_ReturnsLineItsOn) {
             src::SourceVault v;
             std::optional<src::FileID> id = v.loadMemory("1234\n5678");
             ASSERT_EQ(1, id);
             std::string_view line = v.getLineAt({ *id, 4 });
-            EXPECT_EQ(line, "5678");
+            EXPECT_EQ(line, "1234");
         }
+
+
+        // then errors
+
 
         //TEST(SourceVault_SeekBeyondFileLength_Errors) {
         //    AssertHandler log;
