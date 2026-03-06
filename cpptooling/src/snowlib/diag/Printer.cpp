@@ -110,7 +110,7 @@ namespace diag {
 
             std::optional<LocationData> locationData;
             std::string locationName;
-            auto locLocationParser = [&locationData, &locationName, level = diagDesc.mLevel](src::Loc loc) {
+            auto locLocationParser = [&locationData, &locationName](src::Loc loc) {
                 auto [line, col] = src::SourceVault::fetch().getLineCol(loc);
                 const src::FileEntry* fileData = src::SourceVault::fetch().tryGetFileData(loc.mFileID);
                 if (!fileData || col == 0) {

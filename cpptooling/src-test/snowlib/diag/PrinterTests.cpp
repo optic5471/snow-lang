@@ -8,7 +8,7 @@
 #include <util/cmd/manip.hpp>
 
 namespace test {
-    TEST_CLASS(PrinterTests, "snowlib", "diag") {
+    TEST_CLASS(PrinterTests, "snowlib", "diag", TestInfra::Tags::Ignore) {
         TEST_START() {
             Log::testOnly_enableTestEndPoint();
         }

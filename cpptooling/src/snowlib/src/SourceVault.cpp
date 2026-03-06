@@ -118,7 +118,7 @@ namespace src {
         return &it->second;
     }
 
-    std::optional<FileID> SourceVault::loadFile(const util::fs::Path& path) {
+    std::optional<FileID> SourceVault::loadFile([[maybe_unused]]const util::fs::Path& path) {
         // load file from disk into memory
         DEBUG_FAIL("Not implemented, also how do I reconcile multiple packages?");
         return {};

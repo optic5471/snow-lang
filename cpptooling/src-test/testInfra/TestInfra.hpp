@@ -14,10 +14,6 @@
 // after created.
 #define __TEST_INFRA_REVERSE_FN_ORDER true
 
-// set these to your various defines that you need to, defaults to MSVC values
-#define __TEST_INFRA_WINDOWS (_WIN32 || _WIN64)
-#define __TEST_INFRA_DEBUG _DEBUG
-
 /*
 TestInfra
 This header is a light test infrasturcture system that requires no registration of test functions or classes, just use the macros to create the tests and run them.
@@ -149,15 +145,16 @@ API:
             - NOTHROW: The action should not throw. Produces error if it does
 */
 
-#include <assert.h>
-#include <format>   // LogHook message formatting
+#include <format>   //  LogHook message formatting
 #include <iostream> // CoutLogHook printing
 #include <memory>   // unique_ptr used to create test class
 #include <optional>
 #include <string>
 #include <vector>
 
+#include <util/CompilerFlags.hpp>
 #include <util/Benchmark.hpp>
+#include <util/DebugBreak.hpp>
 #include <util/Log.hpp>
 #include <test/testHelpers/TestLogEndPoint.hpp>
 
@@ -171,7 +168,7 @@ namespace TestInfra {
         struct ITestClassNode;
         struct TestInfraCollections;
         class TestTags;
-        class ITestClassNode;
+        struct ITestClassNode;
         template <typename T>
         struct TestClassNode;
         struct ITestClass;
@@ -240,13 +237,13 @@ namespace TestInfra {
         }
 
     protected:
-        virtual void _testRunnerInit(size_t aTestCount) {};
-        virtual void _error(const std::string& aMessage) {};
-        virtual void _log(const std::string& aMessage) {};
-        virtual void _startTest(const std::string& aFuncName) {};
-        virtual void _endTest(const std::string& aFuncName, TestResult aResult, double timeMs) {};
-        virtual void _startClass(const std::string& aClassName) {};
-        virtual void _endClass(const std::string& aClassName, TestResult aResult, double timeMs) {};
+        virtual void _testRunnerInit(size_t /*aTestCount*/) {};
+        virtual void _error(const std::string& /*aMessage*/) {};
+        virtual void _log(const std::string& /*aMessage*/) {};
+        virtual void _startTest(const std::string& /*aFuncName*/) {};
+        virtual void _endTest(const std::string& /*aFuncName*/, TestResult /*aResult*/, double /*timeMs*/) {};
+        virtual void _startClass(const std::string& /*aClassName*/) {};
+        virtual void _endClass(const std::string& /*aClassName*/, TestResult /*aResult*/, double /*timeMs*/) {};
 
     public:
         // Only 1 hook can be used at a time
@@ -453,6 +450,9 @@ namespace TestInfra {
             virtual void _onDrop() {}
             virtual void _onTestStart() {}
             virtual void _onTestStop() {}
+
+        public:
+            virtual ~ITestClass() = default;
         };
 
 
@@ -475,7 +475,7 @@ namespace TestInfra {
             }
             if (e.has_value()) {
                 if (__TEST_INFRA_BREAK_ON_FAIL) {
-                    __debugbreak();
+                    pdebugbreak();
                 }
                 Log::error(std::string("Test encountered exception: ") + e.value()->what());
             }
@@ -547,7 +547,7 @@ namespace TestInfra {
                 std::string filename = fileName;
                 size_t lastSlash = filename.size();
                 for (auto it = filename.rbegin(); it != filename.rend(); ++it) {
-#if __TEST_INFRA_WINDOWS
+#if OP_PLATFORM_WINDOWS
                     if (*it == '\\') {
 #else
                     if (*it == '/') {
@@ -810,15 +810,15 @@ namespace TestInfra {
 // This can just make a static variable in the file to initialize the node
 #define TEST_CLASS(_className, ...) \
     class _className; \
-    TestInfra::Internal::TestClassNode<_className> __TestInfra_ClassNode_ ## _className = TestInfra::Internal::TestClassNode<_className>(#_className, std::vector<std::string>{ #_className, __VA_ARGS__ }); \
+    TestInfra::Internal::TestClassNode<_className> __TestInfra_ClassNode_ ## _className = TestInfra::Internal::TestClassNode<_className>(#_className, std::vector<std::string>{ #_className __VA_OPT__(, __VA_ARGS__) }); \
     class _className : public TestInfra::Internal::TestClass<_className>
 
 // Because tests are inside a class, they dont auto initialize and need a separate thing
 #define TEST(_testName, ...) \
-    using TFuncNode_ ## _testName = TestInfra::Internal::TestFuncNode<ClassNodeType, ClassType>; \
     void __TestInfra_TempFunc_ ## _testName() { _testName(); } \
-    friend class TFuncNode_ ## _testName; \
-    static inline TFuncNode_ ## _testName __TestInfra_FuncNode_ ## _testName = TFuncNode_ ## _testName(#_testName, std::vector<std::string>{ #_testName, __VA_ARGS__ }, &ClassType::__TestInfra_TempFunc_ ## _testName); \
+    friend struct TestInfra::Internal::TestFuncNode<ClassNodeType, ClassType>; \
+    static inline TestInfra::Internal::TestFuncNode<ClassNodeType, ClassType> __TestInfra_FuncNode_ ## _testName = \
+        TestInfra::Internal::TestFuncNode<ClassNodeType, ClassType>(#_testName, std::vector<std::string>{ #_testName __VA_OPT__(, __VA_ARGS__) }, &ClassType::__TestInfra_TempFunc_ ## _testName); \
     void _testName()
 
 #define TEST_CLASS_INIT() void _onInit() override
@@ -829,7 +829,7 @@ namespace TestInfra {
 
 // ===========================================================================================================================
 // for use internally only
-#if __TEST_INFRA_DEBUG
+#ifdef OP_DEBUG
 #define __TEST_INFRA_EXPECTTRUE(_expressionOutcome, _expressionString, _shouldStop, ...) \
     if (!TestInfra::Internal::Assert::toBool(_expressionOutcome)) { \
         TestInfra::LogHook::error("Assertion Failure:\n\t\tFilename: {}\n\t\tClass: {}\n\t\tFunction: {}\n\t\tLine Number: {}\n\t\tAssertion: {}\n\t\tMessage: {}", \
@@ -838,11 +838,11 @@ namespace TestInfra {
             TestInfra::Internal::ITestClass::mCurrFuncTestName ? *TestInfra::Internal::ITestClass::mCurrFuncTestName : "UnknownFuncName", \
             __LINE__, \
             _expressionString, \
-            TestInfra::Internal::Assert::tryFormat(__VA_ARGS__) \
+            TestInfra::Internal::Assert::tryFormat(__VA_OPT__(__VA_ARGS__)) \
         ); \
         TestInfra::Internal::ITestClass::mTestResult = TestInfra::TestResult::Fail; \
         if (__TEST_INFRA_BREAK_ON_FAIL) { \
-            __debugbreak(); \
+            pdebugbreak(); \
         } \
         if (_shouldStop) { \
             throw TestInfra::Internal::FailException(); \
@@ -857,7 +857,7 @@ namespace TestInfra {
             TestInfra::Internal::ITestClass::mCurrFuncTestName ? *TestInfra::Internal::ITestClass::mCurrFuncTestName : "UnknownFuncName", \
             __LINE__, \
             _expressionString, \
-            TestInfra::Internal::Assert::tryFormat(__VA_ARGS__) \
+            TestInfra::Internal::Assert::tryFormat(__VA_OPT__(__VA_ARGS__)) \
         ); \
         TestInfra::Internal::ITestClass::mTestResult = TestInfra::TestResult::Fail; \
         if (__TEST_INFRA_BREAK_ON_FAIL) { \
@@ -872,22 +872,22 @@ namespace TestInfra {
 
 // -------------------------------------------------------------------------------
 // EXPECT macros will not crash the engine, they will report the errors though
-#define EXPECT_TRUE(_expression, ...) __TEST_INFRA_EXPECTTRUE(_expression, #_expression, false, __VA_ARGS__);
-#define EXPECT_FALSE(_expression, ...) __TEST_INFRA_EXPECTTRUE(!(_expression), #_expression, false, __VA_ARGS__);
-#define EXPECT_FAIL(...) __TEST_INFRA_EXPECTTRUE(false, "FAIL", false, __VA_ARGS__);
-#define EXPECT_EQ(_actual, _expected, ...) EXPECT_TRUE((_expected) == (_actual), __VA_ARGS__);
-#define EXPECT_NEQ(_actual, _expected, ...) EXPECT_FALSE((_expected) == (_actual), __VA_ARGS__);
-#define EXPECT_LTE(_actual, _expected, ...) EXPECT_TRUE((_expected) < (_actual) || (_expected) == (_actual), __VA_ARGS__);
-#define EXPECT_LT(_actual, _expected, ...) EXPECT_TRUE((_expected) < (_actual), __VA_ARGS__);
-#define EXPECT_GTE(_actual, _expected, ...) EXPECT_FALSE((_actual) < (_expected), __VA_ARGS__);
-#define EXPECT_GT(_actual, _expected, ...) EXPECT_FALSE((_actual) < (_expected) || (_expected) == (_actual), __VA_ARGS__);
-#define EXPECT_NEAR(_actual, _expected, _epsilon, ...) EXPECT_TRUE(std::abs((_actual) - (_expected)) < (_epsilon), __VA_ARGS__);
-#define EXPECT_NOTNEAR(_actual, _expected, _epsilon, ...) EXPECT_FALSE(std::abs((_actual) - (_expected)) < (_epsilon), __VA_ARGS__);
-#define EXPECT_NULL(_actual, ...) EXPECT_TRUE((_actual) == nullptr, __VA_ARGS__);
-#define EXPECT_NOTNULL(_actual, ...) EXPECT_FALSE((_actual) == nullptr, __VA_ARGS__);
-#define EXPECT_STR_NOCASE_EQ(_actual, _expected, ...) EXPECT_TRUE(std::tolower(_actual) == std::tolower(_expected), __VA_ARGS__);
-#define EXPECT_EMPTY(_value, ...) EXPECT_FALSE((_value.has_value()), __VA_ARGS__);
-#define EXPECT_NEMPTY(_value, ...) EXPECT_TRUE((_value.has_value()), __VA_ARGS__);
+#define EXPECT_TRUE(_expression, ...) __TEST_INFRA_EXPECTTRUE(_expression, #_expression, false __VA_OPT__(, __VA_ARGS__));
+#define EXPECT_FALSE(_expression, ...) __TEST_INFRA_EXPECTTRUE(!(_expression), #_expression, false __VA_OPT__(, __VA_ARGS__));
+#define EXPECT_FAIL(...) __TEST_INFRA_EXPECTTRUE(false, "FAIL", false __VA_OPT__(, __VA_ARGS__));
+#define EXPECT_EQ(_expected, _actual, ...) EXPECT_TRUE((_expected) == (_actual) __VA_OPT__(, __VA_ARGS__));
+#define EXPECT_NEQ(_expected, _actual, ...) EXPECT_FALSE((_expected) == (_actual) __VA_OPT__(, __VA_ARGS__));
+#define EXPECT_LTE(_expected, _actual, ...) EXPECT_TRUE((_expected) < (_actual) || (_expected) == (_actual) __VA_OPT__(, __VA_ARGS__));
+#define EXPECT_LT(_expected, _actual, ...) EXPECT_TRUE((_expected) < (_actual) __VA_OPT__(, __VA_ARGS__));
+#define EXPECT_GTE(_expected, _actual, ...) EXPECT_FALSE((_actual) < (_expected) __VA_OPT__(, __VA_ARGS__));
+#define EXPECT_GT(_expected, _actual, ...) EXPECT_FALSE((_actual) < (_expected) || (_expected) == (_actual) __VA_OPT__(, __VA_ARGS__));
+#define EXPECT_NEAR(_expected, _actual, _epsilon, ...) EXPECT_TRUE(std::abs((_actual) - (_expected)) < (_epsilon) __VA_OPT__(, __VA_ARGS__));
+#define EXPECT_NOTNEAR(_expected, _actual, _epsilon, ...) EXPECT_FALSE(std::abs((_actual) - (_expected)) < (_epsilon) __VA_OPT__(, __VA_ARGS__));
+#define EXPECT_NULL(_actual, ...) EXPECT_TRUE((_actual) == nullptr __VA_OPT__(, __VA_ARGS__));
+#define EXPECT_NOTNULL(_actual, ...) EXPECT_FALSE((_actual) == nullptr __VA_OPT__(, __VA_ARGS__));
+#define EXPECT_STR_NOCASE_EQ(_expected, _actual, ...) EXPECT_TRUE(std::tolower(_actual) == std::tolower(_expected) __VA_OPT__(, __VA_ARGS__));
+#define EXPECT_EMPTY(_value, ...) EXPECT_FALSE((_value.has_value()) __VA_OPT__(, __VA_ARGS__));
+#define EXPECT_NEMPTY(_value, ...) EXPECT_TRUE((_value.has_value()) __VA_OPT__(, __VA_ARGS__));
 
 // Example: EXPECT_THROW(
 //     Do something in the try group... ,
@@ -900,9 +900,9 @@ namespace TestInfra {
         didThrow = false; \
     } _expectedCatchExpressionAndHandling \
     catch (...) { \
-        EXPECT_FAIL("Unknown exception took place: ", __VA_ARGS__); \
+        EXPECT_FAIL("Unknown exception took place: " __VA_OPT__(, __VA_ARGS__)); \
     } \
-    EXPECT_TRUE(didThrow, "Expected an exception, none occurred: ", __VA_ARGS__);
+    EXPECT_TRUE(didThrow, "Expected an exception, none occurred: " __VA_OPT__(, __VA_ARGS__));
 
 #define EXPECT_ANYTHROW(_action, ...) \
     bool didThrow = true; \
@@ -913,34 +913,34 @@ namespace TestInfra {
     catch (...) { \
         didThrow = true; \
     } \
-    EXPECT_TRUE(didThrow, "Expected an exception, none occurred: ", __VA_ARGS__);
+    EXPECT_TRUE(didThrow, "Expected an exception, none occurred: " __VA_OPT__(, __VA_ARGS__));
 
 #define EXPECT_NOTHROW(_action, ...) \
     try { \
         _action; \
     } catch(...) { \
-        EXPECT_FAIL("Expected no exception, an exception has occurred: ", __VA_ARGS__); \
+        EXPECT_FAIL("Expected no exception, an exception has occurred: " __VA_OPT__(, __VA_ARGS__)); \
     }
 
 
 // -------------------------------------------------------------------------------
 // ASSERT macros WILL crash the engine after reporting the errors
-#define ASSERT_TRUE(_expression, ...) __TEST_INFRA_EXPECTTRUE(_expression, #_expression, true, __VA_ARGS__);
-#define ASSERT_FALSE(_expression, ...) __TEST_INFRA_EXPECTTRUE(!(_expression), #_expression, true, __VA_ARGS__);
-#define ASSERT_FAIL(...) __TEST_INFRA_EXPECTTRUE(false, "FAIL", true, __VA_ARGS__);
-#define ASSERT_EQ(_actual, _expected, ...) ASSERT_TRUE((_expected) == (_actual), __VA_ARGS__);
-#define ASSERT_NEQ(_actual, _expected, ...) ASSERT_FALSE((_expected) == (_actual), __VA_ARGS__);
-#define ASSERT_LTE(_actual, _expected, ...) ASSERT_TRUE((_expected) < (_actual) || (_expected) == (_actual), __VA_ARGS__);
-#define ASSERT_LT(_actual, _expected, ...) ASSERT_TRUE((_expected) < (_actual), __VA_ARGS__);
-#define ASSERT_GTE(_actual, _expected, ...) ASSERT_FALSE((_expected) < (_actual), __VA_ARGS__);
-#define ASSERT_GT(_actual, _expected, ...) ASSERT_FALSE((_expected) < (_actual) || (_expected) == (_actual), __VA_ARGS__);
-#define ASSERT_NEAR(_actual, _expected, _epsilon, ...) ASSERT_TRUE(Math::abs((_actual) - (_expected)) < (_epsilon), __VA_ARGS__);
-#define ASSERT_NOTNEAR(_actual, _expected, _epsilon, ...) ASSERT_FALSE(Math::abs((_actual) - (_expected)) < (_epsilon), __VA_ARGS__);
-#define ASSERT_NULL(_actual, ...) ASSERT_TRUE((_actual) == nullptr, __VA_ARGS__);
-#define ASSERT_NOTNULL(_actual, ...) ASSERT_FALSE((_actual) == nullptr, __VA_ARGS__);
-#define ASSERT_STR_NOCASE_EQ(_actual, _expected, ...) ASSERT_TRUE(std::tolower(_actual) == std::tolower(_expected), __VA_ARGS__);
-#define ASSERT_EMPTY(_value, ...) ASSERT_FALSE((_value.has_value()), __VA_ARGS__);
-#define ASSERT_NEMPTY(_value, ...) ASSERT_TRUE((_value.has_value()), __VA_ARGS__);
+#define ASSERT_TRUE(_expression, ...) __TEST_INFRA_EXPECTTRUE(_expression, #_expression, true __VA_OPT__(, __VA_ARGS__));
+#define ASSERT_FALSE(_expression, ...) __TEST_INFRA_EXPECTTRUE(!(_expression), #_expression, true __VA_OPT__(, __VA_ARGS__));
+#define ASSERT_FAIL(...) __TEST_INFRA_EXPECTTRUE(false, "FAIL", true __VA_OPT__(, __VA_ARGS__));
+#define ASSERT_EQ(_expected, _actual, ...) ASSERT_TRUE((_expected) == (_actual) __VA_OPT__(, __VA_ARGS__));
+#define ASSERT_NEQ(_expected, _actual, ...) ASSERT_FALSE((_expected) == (_actual) __VA_OPT__(, __VA_ARGS__));
+#define ASSERT_LTE(_expected, _actual, ...) ASSERT_TRUE((_expected) < (_actual) || (_expected) == (_actual) __VA_OPT__(, __VA_ARGS__));
+#define ASSERT_LT(_expected, _actual, ...) ASSERT_TRUE((_expected) < (_actual) __VA_OPT__(, __VA_ARGS__));
+#define ASSERT_GTE(_expected, _actual, ...) ASSERT_FALSE((_expected) < (_actual) __VA_OPT__(, __VA_ARGS__));
+#define ASSERT_GT(_expected, _actual, ...) ASSERT_FALSE((_expected) < (_actual) || (_expected) == (_actual) __VA_OPT__(, __VA_ARGS__));
+#define ASSERT_NEAR(_expected, _actual, _epsilon, ...) ASSERT_TRUE(Math::abs((_actual) - (_expected)) < (_epsilon) __VA_OPT__(, __VA_ARGS__));
+#define ASSERT_NOTNEAR(_expected, _actual, _epsilon, ...) ASSERT_FALSE(Math::abs((_actual) - (_expected)) < (_epsilon) __VA_OPT__(, __VA_ARGS__));
+#define ASSERT_NULL(_actual, ...) ASSERT_TRUE((_actual) == nullptr __VA_OPT__(, __VA_ARGS__));
+#define ASSERT_NOTNULL(_actual, ...) ASSERT_FALSE((_actual) == nullptr __VA_OPT__(, __VA_ARGS__));
+#define ASSERT_STR_NOCASE_EQ(_expected, _actual, ...) ASSERT_TRUE(std::tolower(_actual) == std::tolower(_expected) __VA_OPT__(, __VA_ARGS__));
+#define ASSERT_EMPTY(_value, ...) ASSERT_FALSE((_value.has_value()) __VA_OPT__(, __VA_ARGS__));
+#define ASSERT_NEMPTY(_value, ...) ASSERT_TRUE((_value.has_value()) __VA_OPT__(, __VA_ARGS__));
 
 #define ASSERT_THROW(_action, _expectedCatchExpressionAndHandling, ...) \
     bool didThrow = true; \
@@ -949,9 +949,9 @@ namespace TestInfra {
         didThrow = false; \
     } _expectedCatchExpressionAndHandling \
     catch (...) { \
-        ASSERT_FAIL("Unknown exception took place: " + __VA_ARGS__); \
+        ASSERT_FAIL("Unknown exception took place: "  __VA_OPT__(+ __VA_ARGS__)); \
     } \
-    ASSERT_TRUE(didThrow, "Expected an exception, none occurred: " + __VA_ARGS__);
+    ASSERT_TRUE(didThrow, "Expected an exception, none occurred: "  __VA_OPT__(+ __VA_ARGS__));
 
 #define ASSERT_ANYTHROW(_action, ...) \
     bool didThrow = true; \
@@ -962,13 +962,13 @@ namespace TestInfra {
     catch (...) { \
         didThrow = true; \
     } \
-    ASSERT_TRUE(didThrow, "Expected an exception, none occurred: " + __VA_ARGS__);
+    ASSERT_TRUE(didThrow, "Expected an exception, none occurred: "  __VA_OPT__(+ __VA_ARGS__));
 
 #define ASSERT_NOTHROW(_action, ...) \
     try { \
         _action; \
     } catch(...) { \
-        ASSERT_FAIL("Expected no exception, an exception has occurred: " + __VA_ARGS__); \
+        ASSERT_FAIL("Expected no exception, an exception has occurred: "  __VA_OPT__(+ __VA_ARGS__)); \
     }
 
 #endif // TEST_ENABLED

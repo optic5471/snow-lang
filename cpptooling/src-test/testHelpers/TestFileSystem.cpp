@@ -107,7 +107,7 @@ namespace test {
             return 0;
         }
         if (TestFileStream::isOpen()) {
-            if (mCursor < n) {
+            if (static_cast<std::int64_t>(mCursor) < n) {
                 size_t v = mCursor;
                 mCursor = 0;
                 return v;
@@ -405,8 +405,8 @@ namespace test {
 
     TestFileSystem::File::File(const std::string& name, std::shared_ptr<Directory> parent)
         : mName(name)
-        , mParent(parent)
-        , mTimeStamp(::timeStampMod++) {
+        , mTimeStamp(::timeStampMod++)
+        , mParent(parent) {
     }
 
     void TestFileSystem::File::updateTimeStamp() {
@@ -423,8 +423,8 @@ namespace test {
 
     TestFileSystem::Directory::Directory(const std::string& name, std::shared_ptr<Directory> parent)
         : mName(name)
-        , mParent(parent)
-        , mTimeStamp(::timeStampMod++) {
+        , mTimeStamp(::timeStampMod++)
+        , mParent(parent) {
     }
 
     bool TestFileSystem::Directory::operator==(const Directory& other) const {
@@ -466,11 +466,11 @@ namespace test {
     }
 
     TestFileSystem::Mount::Mount(const std::string& name, size_t driveSize)
-        : mName(name)
+        : mDirectory(std::make_shared<Directory>("/", nullptr))
+        , mName(name)
         , mCapacity(driveSize)
-        , mUnusedSize(driveSize)
         , mAvailableSize(static_cast<size_t>(driveSize * ::AvailableUnusedRatio)) // TODO have files actually make this go down
-        , mDirectory(std::make_shared<Directory>("/", nullptr)) {
+        , mUnusedSize(driveSize) {
     }
 
     bool TestFileSystem::Mount::operator==(const Mount& other) const {
@@ -736,7 +736,7 @@ namespace test {
             }
             // check for parent directory existing, then we can add a new directory for this
             else if (parentPath.has_value()) {
-                auto parentPath = destination.parent();
+                parentPath = destination.parent();
                 if (parentPath) {
                     destDir = _tryGetOrMakeDirectory(parentPath.value());
                     if (!destDir) {
@@ -780,8 +780,8 @@ namespace test {
         }
 
         if (performOp) {
-            size_t srcSize = _getDirectorySize(srcDir);
-            size_t destSize = _getDirectorySize(destDir);
+            //size_t srcSize = _getDirectorySize(srcDir);
+            //size_t destSize = _getDirectorySize(destDir);
             //Mount* dm = _tryGetMount(destination);
             //Mount* sm = _tryGetMount(source);
             //dm->mAvailableSize += srcSize;

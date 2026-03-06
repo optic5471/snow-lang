@@ -19,13 +19,13 @@ namespace TestHelpers {
         TestLogHook(bool quiet, bool benchmark);
         ~TestLogHook() override = default;
 
-        void _testRunnerInit(size_t testCount);
-        void _error(const std::string& message);
-        void _log(const std::string& message);
-        void _startTest(const std::string& funcName);
-        void _endTest(const std::string& funcName, TestInfra::TestResult result, double timeMs);
-        void _startClass(const std::string& className);
-        void _endClass(const std::string& className, TestInfra::TestResult result, double timeMs);
+        void _testRunnerInit(size_t testCount) override;
+        void _error(const std::string& message) override;
+        void _log(const std::string& message) override;
+        void _startTest(const std::string& funcName) override;
+        void _endTest(const std::string& funcName, TestInfra::TestResult result, double timeMs) override;
+        void _startClass(const std::string& className) override;
+        void _endClass(const std::string& className, TestInfra::TestResult result, double timeMs) override;
     };
 }
 

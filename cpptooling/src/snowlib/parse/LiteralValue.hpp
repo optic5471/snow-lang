@@ -3,8 +3,8 @@
 
 #pragma once
 
+#include <cinttypes>
 #include <string>
-#include <variant>
 
 #include <util/meta/meta.hpp>
 

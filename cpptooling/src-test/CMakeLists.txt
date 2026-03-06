@@ -11,7 +11,7 @@ target_sources(UnitTest
     PUBLIC ${UnitTest_HeaderFiles}
 )
 
-include(${CMAKE_SOURCE_DIR}/cmake/SourceGrouping.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/sourceGrouping.cmake)
 
 target_source_group(UnitTest ${CMAKE_CURRENT_SOURCE_DIR})
 

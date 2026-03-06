@@ -35,10 +35,13 @@ namespace diag {
 
         // These debug utils help diagnose type issues with the constructMakeArgs function
         template <size_t depthToPrint, size_t depth, typename tArg, typename... tArgs>
-        void DEBUG_print_type_at_depth(tArg&& arg, tArgs&&... args) {
+        void DEBUG_print_type_at_depth(tArg&&, tArgs&&... args) {
             if constexpr (depth == depthToPrint) {
                 // this will produce an error similar to `C2039: 'something_made_up': is not a member of 'file::Loc'
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-local-typedef"
                 typedef typename std::decay_t<tArg>::something_made_up X;
+#pragma clang diagnostic pop
             }
             else {
                 DEBUG_print_type_at_depth<depthToPrint, depth + 1>(std::forward<tArgs>(args)...);
@@ -108,7 +111,7 @@ namespace diag {
         }
 
         template <size_t depth>
-        void constructMakeArgs(MakeArgs& out, bool parseToArgs) {}
+        void constructMakeArgs(MakeArgs&, bool) {}
     }
 
     // returns the same string with proper highlighting
@@ -129,7 +132,7 @@ namespace diag {
 
     // These debug utils help diagnose type issues with the constructMakeArgs function
     template <typename... tArgs>
-    void makeDEBUG(Type t, tArgs&&... args) {
+    void makeDEBUG(Type, tArgs&&... args) {
         internal::DEBUG_print_type_at_depth<1, 0>(std::forward<tArgs>(args)...);
     }
 }

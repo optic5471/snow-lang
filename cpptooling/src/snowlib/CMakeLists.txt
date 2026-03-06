@@ -12,7 +12,7 @@ target_sources(SnowLib
     PUBLIC ${SnowLib_HeaderFiles}
 )
 
-include(${CMAKE_SOURCE_DIR}/cmake/SourceGrouping.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/sourceGrouping.cmake)
 
 target_source_group(SnowLib ${CMAKE_CURRENT_SOURCE_DIR})
 

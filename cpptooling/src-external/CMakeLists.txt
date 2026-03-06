@@ -18,7 +18,7 @@ target_sources(CppUtils
     PUBLIC ${CppUtils_HeaderFiles}
 )
 
-include(${CMAKE_SOURCE_DIR}/cmake/SourceGrouping.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/sourceGrouping.cmake)
 
 target_source_group(CppUtils ${CMAKE_CURRENT_SOURCE_DIR}/cpp-utils/src/src-utils)
 

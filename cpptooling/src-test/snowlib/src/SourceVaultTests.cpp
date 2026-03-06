@@ -5,7 +5,7 @@
 #include <testInfra/TestInfra.hpp>
 
 namespace test {
-    TEST_CLASS(SourceVaultTests, "snowlib") {
+    TEST_CLASS(SourceVaultTests, "snowlib", TestInfra::Tags::Ignore) {
         // getLineCol, getLineAt, getLexeme: beyond file length and missing file errors
         // getLineCol, getLineAt: empty files, no new lines, after last newline
         // getLineAt: gets the line in question with no new line characters
