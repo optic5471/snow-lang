@@ -145,6 +145,7 @@ API:
             - NOTHROW: The action should not throw. Produces error if it does
 */
 
+#include <assert.h>
 #include <format>   //  LogHook message formatting
 #include <iostream> // CoutLogHook printing
 #include <memory>   // unique_ptr used to create test class
