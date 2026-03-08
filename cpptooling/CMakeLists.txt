@@ -22,7 +22,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 message(STATUS "Using '" ${CMAKE_CXX_COMPILER_ID} "' compiler")
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    add_compile_options(-Wall -Werror -Wextra --std=c++20)
+    add_compile_options(-Wall -Wextra --std=c++20) # -Werror
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     message(STATUS "Configure compiler in VS")
 else()

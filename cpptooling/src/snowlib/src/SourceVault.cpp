@@ -9,7 +9,7 @@ namespace src {
     std::tuple<uint32_t, uint32_t> SourceVault::getLineCol(Loc l) const {
         const FileEntry* file = tryGetFileData(l.mFileID);
         if (!file) {
-            DEBUG_FAIL("How do you have a loc for a non-existant file?");
+            DEBUG_FAIL("How do you have a loc for a non-existent file?");
             return { 0, 0 };
         }
 
@@ -26,27 +26,31 @@ namespace src {
             return { 1, l.mOffset + 1 };
         }
 
-        auto it = std::lower_bound(file->mNewLineTable.begin(), file->mNewLineTable.end(), l.mOffset + 1);
-        uint32_t line = static_cast<uint32_t>(it - file->mNewLineTable.begin()) + 1;
-
-        if (line == 1) {
+        auto it = std::lower_bound(file->mNewLineTable.begin(), file->mNewLineTable.end(), l.mOffset);
+        if (it == file->mNewLineTable.end()) {
+            // last line
+            return {
+                file->mNewLineTable.size() + 1,
+                l.mOffset - file->mNewLineTable.back()
+            };
+        }
+        else if (it == file->mNewLineTable.begin()) {
+            // first line
             return { 1, l.mOffset + 1 };
         }
-        else if (it == file->mNewLineTable.end()) {
-            return { line, (l.mOffset - file->mNewLineTable.back()) + 1 };
+        else {
+            return {
+                static_cast<uint32_t>(it - file->mNewLineTable.begin()) + 1,
+                (l.mOffset - *(it - 1))
+            };
         }
-
-        return {
-            line,
-            l.mOffset - *it
-        };
     }
 
     std::string_view SourceVault::getLineAt(Loc l) const {
         const FileEntry* file = tryGetFileData(l.mFileID);
 
         if (!file) {
-            DEBUG_FAIL("How do you have a loc for a non-existant file?");
+            DEBUG_FAIL("How do you have a loc for a non-existent file?");
             return "";
         }
         else if (file->mContents.size() < l.mOffset) {

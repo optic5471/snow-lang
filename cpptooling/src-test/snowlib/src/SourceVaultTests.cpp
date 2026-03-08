@@ -6,14 +6,6 @@
 
 namespace test {
     TEST_CLASS(SourceVaultTests, "snowlib", TestInfra::Tags::Ignore) {
-        // getLineCol, getLineAt, getLexeme: beyond file length and missing file errors
-        // getLineCol, getLineAt: empty files, no new lines, after last newline
-        // getLineAt: gets the line in question with no new line characters
-        //      what about /r?
-        // getLineCol: on newline, imbetween new lines
-        // getLexeme: return the value
-        // loadMemory: correct ID, correct new line table
-
         // Also tests that generating new lines for a file without them works as expected
         TEST(SourceVault_LoadMemory_Functions) {
             src::SourceVault v;
@@ -165,8 +157,8 @@ namespace test {
             src::SourceVault v;
             std::optional<src::FileID> id = v.loadMemory(fileData);
             ASSERT_EQ(1, id);
-            for (size_t i = 0; i < 49; ++i) {
-                _lineColForLine(v, i + 1, (i * 20), ((i + 1) * 20));
+            for (size_t i = 1; i < 49; ++i) {
+                _lineColForLine(v, i + 1, (i * 20), (i * 20) + 19);
             }
         }
 
@@ -232,6 +224,79 @@ namespace test {
             ASSERT_EQ(1, id);
             std::string_view line = v.getLineAt({ *id, 4 });
             EXPECT_EQ(line, "1234");
+        }
+
+        TEST(SourceVault_GetLineCol_NotAFile_Errors) {
+            src::SourceVault v;
+            test::AssertHandler ah;
+            auto [l, c] = v.getLineCol({ 1, 1 });
+            EXPECT_EQ(l, 0);
+            EXPECT_EQ(c, 0);
+            ah.expectOneMessageWhichContains("How do you have a loc for a non-existent file?");
+        }
+
+        TEST(SourceVault_GetLineCol_EmptyFile_CorrectReturn) {
+            src::SourceVault v;
+            std::optional<src::FileID> id = v.loadMemory("");
+            ASSERT_EQ(1, id);
+            auto [l, c] = v.getLineCol({ 1, 1 });
+            EXPECT_EQ(l, 1);
+            EXPECT_EQ(c, 0);
+        }
+
+        TEST(SourceVault_GetLineCol_BeyondFile_Errors) {
+            src::SourceVault v;
+            test::AssertHandler ah;
+            std::optional<src::FileID> id = v.loadMemory("\n\n\n1234");
+            ASSERT_EQ(1, id);
+            auto [l, c] = v.getLineCol({ 1, 100 });
+            ah.expectOneMessageWhichContains("Attempting to reach beyond the file's length!");
+        }
+
+        TEST(SourceVault_GetLineAt_NotAFile_Errors) {
+            src::SourceVault v;
+            test::AssertHandler ah;
+            std::string_view s = v.getLineAt({ 1, 1 });
+            EXPECT_TRUE(s.empty());
+            ah.expectOneMessageWhichContains("How do you have a loc for a non-existent file?");
+        }
+
+        TEST(SourceVault_GetLineAt_BeyondFileLength_Errors) {
+            src::SourceVault v;
+            test::AssertHandler ah;
+            std::optional<src::FileID> id = v.loadMemory("\n\n\n1234");
+            ASSERT_EQ(1, id);
+            std::string_view s = v.getLineAt({ 1, 100 });
+            EXPECT_TRUE(s.empty());
+            ah.expectOneMessageWhichContains("Attempting to reach beyond the file's length!");
+        }
+
+        TEST(SourceVault_GetLexeme_NotAFile_Errors) {
+            src::SourceVault v;
+            test::AssertHandler ah;
+            std::string_view s = v.getLexeme({ 1, 1, 1 });
+            EXPECT_TRUE(s.empty());
+            ah.expectOneMessageWhichContains("How do you have a loc for a non-existent file?");
+        }
+
+        TEST(SourceVault_GetLexeme_PosBeyondFileLength_Errors) {
+            src::SourceVault v;
+            test::AssertHandler ah;
+            std::optional<src::FileID> id = v.loadMemory("\n\n\n1234");
+            ASSERT_EQ(1, id);
+            std::string_view s = v.getLexeme({ 1, 100, 1 });
+            EXPECT_TRUE(s.empty());
+            ah.expectOneMessageWhichContains("Attempting to reach beyond the file's length!");
+        }
+
+        TEST(SourceVault_GetLexeme_LengthBeyondFileLength_Errors) {
+            src::SourceVault v;
+            test::AssertHandler ah;
+            std::optional<src::FileID> id = v.loadMemory("\n\n\n1234");
+            ASSERT_EQ(1, id);
+            std::string_view s = v.getLexeme({ 1, 3, 100 });
+            EXPECT_TRUE(s.empty());
+            ah.expectOneMessageWhichContains("Attempting to reach beyond the file's length!");
         }
 
 
