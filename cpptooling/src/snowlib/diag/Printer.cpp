@@ -49,15 +49,15 @@ namespace diag {
     }
 
     namespace internal {
-        std::string _numToDigitString(size_t digit) {
+        std::string _numToDigitString(size_t digit, bool zeroes) {
             if (digit < 10) {
-                return util::format("000${}", digit);
+                return util::format("${}${}", zeroes ? "000" : "   ", digit);
             }
             else if (digit < 100) {
-                return util::format("00${}", digit);
+                return util::format("${}${}", zeroes ? "00" : "  ", digit);
             }
             else if (digit < 1000) {
-                return util::format("0${}", digit);
+                return util::format("${}${}", zeroes ? "0" : " ", digit);
             }
             return util::format("${}", digit);
         }
@@ -102,6 +102,8 @@ namespace diag {
 
             struct LocationData {
                 size_t col;
+                std::optional<std::pair<size_t, size_t>> range1; // col, len
+                std::optional<std::pair<size_t, size_t>> range2; // col, len
                 size_t lineNum;
                 std::string src;
                 size_t whitespaceCountAtBeginning;
@@ -175,17 +177,18 @@ namespace diag {
                 }
             }
             else if (args.mRange1.has_value()) {
-                src::LocRange r1 = *args.mRange1;
-                locLocationParser(*args.mRange1);
+                locLocationParser(args.mRange1.value());
+            }
 
-                if (locationData.has_value()) {
+            if (locationData.has_value()) {
+                if (args.mRange1.has_value()) {
+                    auto [line1, col1] = src::SourceVault::fetch().getLineCol(args.mRange1.value());
+                    locationData->range1 = { col1, args.mRange1->mLength };
                     if (args.mRange2.has_value()) {
-                        src::LocRange r2 = *args.mRange2;
+                        auto [line2, col2] = src::SourceVault::fetch().getLineCol(args.mRange2.value());
+                        locationData->range2 = { col2, args.mRange2->mLength };
 
-                        auto [line1, col1] = src::SourceVault::fetch().getLineCol(r1);
-                        auto [line2, col2] = src::SourceVault::fetch().getLineCol(r2);
-
-                        if (r1.mFileID != r2.mFileID) {
+                        if (args.mRange1->mFileID != args.mRange2->mFileID) {
                             FAIL_IN_PUBLISH("A diag provided with ranges, must have both ranges come from the same file");
                             return;
                         }
@@ -227,7 +230,7 @@ namespace diag {
 
                 util::cmd::manip::textColor(msgColor),
                 StageShortName(diagDesc.mStage),
-                _numToDigitString(static_cast<size_t>(diagDesc.mType)),
+                _numToDigitString(static_cast<size_t>(diagDesc.mType), true),
                 util::cmd::manip::textColorDefault(),
 
                 diagMsg
@@ -237,21 +240,10 @@ namespace diag {
             if (locationData.has_value()) {
                 std::string srcMessageLine = util::format("${}${} |${} ${}",
                     util::cmd::manip::textColorDarkGrey(),
-                    _numToDigitString(locationData->lineNum),
+                    _numToDigitString(locationData->lineNum, false),
                     util::cmd::manip::textColorDefault(),
                     locationData->src
                 );
-
-                uint32_t col1 = 0;
-                uint32_t col2 = 0;
-                if (args.mRange1.has_value()) {
-                    auto [line, col] = src::SourceVault::fetch().getLineCol(args.mRange1.value());
-                    col1 = col;
-                }
-                if (args.mRange2.has_value()) {
-                    auto [line, col] = src::SourceVault::fetch().getLineCol(args.mRange2.value());
-                    col2 = col;
-                }
 
                 std::string positionData;
                 positionData.reserve(locationData->src.size());
@@ -260,34 +252,41 @@ namespace diag {
                     size_t pos = (i + locationData->whitespaceCountAtBeginning);
 
                     bool range1Invalid = false;
-                    if (args.mRange1.has_value()) {
-                        size_t rstart = col1 - 1;
-                        size_t rend = (rstart + args.mRange1->mLength);
-                        if (pos > rend) {
+                    if (locationData->range1.has_value()) {
+                        size_t start = locationData->range1->first - 1;
+                        size_t end = start + locationData->range1->second;
+                        if (pos > end) {
                             range1Invalid = true;
                         }
-                        else if (pos >= rstart && pos < rend) {
+                        else if (pos >= start && pos < end) {
                             inRange = true;
                         }
                     }
+                    else {
+                        range1Invalid = true;
+                    }
+
                     bool range2Invalid = false;
-                    if (args.mRange2.has_value()) {
-                        size_t rstart = col2 - 1;
-                        size_t rend = (rstart + args.mRange2->mLength);
-                        if (pos > rend) {
+                    if (locationData->range2.has_value()) {
+                        size_t start = locationData->range2->first - 1;
+                        size_t end = start + locationData->range2->second;
+                        if (pos > end) {
                             range2Invalid = true;
                         }
-                        else if (pos >= rstart && pos < rend) {
+                        else if (pos >= start && pos < end) {
                             inRange = true;
                         }
                     }
+                    else {
+                        range2Invalid = true;
+                    }
+
                     bool posInvalid = false;
                     if (pos > (locationData->col - 1)) {
                         posInvalid = true;
                     }
 
-                    bool invalid = posInvalid && range1Invalid && range2Invalid;
-                    if (invalid) {
+                    if (posInvalid && range1Invalid && range2Invalid) {
                         break;
                     }
 

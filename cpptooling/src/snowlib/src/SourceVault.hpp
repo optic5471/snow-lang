@@ -26,6 +26,7 @@ namespace src {
         std::unordered_map<FileID, FileEntry> mFiles;
 
         std::vector<uint32_t> _generateNewLineTable(const std::string& file) const;
+        std::string _stripCarriageReturnAtNewlines(const std::string& fileContents) const;
 
     public:
         std::tuple<uint32_t, uint32_t> getLineCol(Loc l) const;

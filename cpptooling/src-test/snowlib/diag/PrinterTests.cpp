@@ -61,7 +61,7 @@ namespace test {
             auto b = util::cmd::manip::Builder();
             b.textColorBrightBlue("In Memory (1|2)").text(": ").textColorBrightYellow("L0996")
                 .text(": Test warning").reset().text("\n")
-                .textColorDarkGrey("0001 |").text(" asdf\n")
+                .textColorDarkGrey("   1 |").text(" asdf\n")
                 .textColorDarkGrey("     | ").text(" ").textColorBrightGreen("^");
 
             log->expectOneMessageWhichContains(b.str());
@@ -77,7 +77,7 @@ namespace test {
             auto b = util::cmd::manip::Builder();
             b.textColorBrightBlue("In Memory (1|2)").text(": ").textColorBrightYellow("L0996")
                 .text(": Test warning").reset().text("\n")
-                .textColorDarkGrey("0001 |").text(" asdf\n")
+                .textColorDarkGrey("   1 |").text(" asdf\n")
                 .textColorDarkGrey("     | ").text(" ").textColorBrightGreen("^").textColorBrightMagenta("~");
 
             log->expectOneMessageWhichContains(b.str());
@@ -107,7 +107,7 @@ namespace test {
             auto b = util::cmd::manip::Builder();
             b.textColorBrightBlue("In Memory (1|7)").text(": ").textColorBrightRed("S0997")
                 .text(": Test error with '").textColorBrightCyan("thingy").text("' value").reset().text("\n")
-                .textColorDarkGrey("0001 |").text(" unary p unary\n")
+                .textColorDarkGrey("   1 |").text(" unary p unary\n")
                 .textColorDarkGrey("     | ").text("      ").textColorBrightGreen("^");
 
             log->expectOneMessageWhichContains(b.str());
@@ -127,7 +127,7 @@ namespace test {
             auto b = util::cmd::manip::Builder();
             b.textColorBrightBlue("In Memory (1|7)").text(": ").textColorBrightRed("S0997")
                 .text(": Test error with '").textColorBrightCyan("thingy").text("' value").reset().text("\n")
-                .textColorDarkGrey("0001 |").text(" unary p unary\n")
+                .textColorDarkGrey("   1 |").text(" unary p unary\n")
                 .textColorDarkGrey("     | ");
             for (size_t i = 0; i < 5; ++i) {
                 b.textColorBrightMagenta("~");
@@ -143,7 +143,7 @@ namespace test {
             std::string s = "unary p unary";
             auto f = v.loadMemory(s);
             auto l = src::Loc(*f, 6);
-            auto r = src::LocRange(*f, 7, 5);
+            auto r = src::LocRange(*f, 8, 5);
 
             diag::make(diag::Type::TEST_UnaryError, l, r, "thingy");
             auto log = Log::testOnly_disableTestEndPoint();
@@ -151,7 +151,7 @@ namespace test {
             auto b = util::cmd::manip::Builder();
             b.textColorBrightBlue("In Memory (1|7)").text(": ").textColorBrightRed("S0997")
                 .text(": Test error with '").textColorBrightCyan("thingy").text("' value").reset().text("\n")
-                .textColorDarkGrey("0001 |").text(" unary p unary\n")
+                .textColorDarkGrey("   1 |").text(" unary p unary\n")
                 .textColorDarkGrey("     | ").text("      ").textColorBrightGreen("^").text(" ");
             for (size_t i = 0; i < 5; ++i) {
                 b.textColorBrightMagenta("~");
@@ -166,7 +166,7 @@ namespace test {
             std::string s = "unary p unary";
             auto f = v.loadMemory(s);
             auto l = src::Loc(*f, 6);
-            auto r = src::LocRange(*f, 2, 7);
+            auto r = src::LocRange(*f, 3, 7);
 
             diag::make(diag::Type::TEST_UnaryError, l, r, "thingy");
             auto log = Log::testOnly_disableTestEndPoint();
@@ -174,7 +174,7 @@ namespace test {
             auto b = util::cmd::manip::Builder();
             b.textColorBrightBlue("In Memory (1|7)").text(": ").textColorBrightRed("S0997")
                 .text(": Test error with '").textColorBrightCyan("thingy").text("' value").reset().text("\n")
-                .textColorDarkGrey("0001 |").text(" unary p unary\n")
+                .textColorDarkGrey("   1 |").text(" unary p unary\n")
                 .textColorDarkGrey("     | ").text("   ");
             for (size_t i = 0; i < 3; ++i) {
                 b.textColorBrightMagenta("~");
@@ -194,7 +194,7 @@ namespace test {
             auto f = v.loadMemory(s);
             auto l = src::Loc(*f, 6);
             auto r1 = src::LocRange(*f, 0, 5);
-            auto r2 = src::LocRange(*f, 7, 5);
+            auto r2 = src::LocRange(*f, 8, 5);
 
             diag::make(diag::Type::TEST_UnaryError, l, r1, r2, "thingy");
             auto log = Log::testOnly_disableTestEndPoint();
@@ -202,7 +202,7 @@ namespace test {
             auto b = util::cmd::manip::Builder();
             b.textColorBrightBlue("In Memory (1|7)").text(": ").textColorBrightRed("S0997")
                 .text(": Test error with '").textColorBrightCyan("thingy").text("' value").reset().text("\n")
-                .textColorDarkGrey("0001 |").text(" unary p unary\n")
+                .textColorDarkGrey("   1 |").text(" unary p unary\n")
                 .textColorDarkGrey("     | ");
             for (size_t i = 0; i < 5; ++i) {
                 b.textColorBrightMagenta("~");
@@ -229,8 +229,8 @@ namespace test {
 
         // exactly the same test as Diag_WarnLocRange_PrintsOkay
         TEST(Diag_MultiLineFile_PrintsOkay) {
-            src::SourceVault v;
-            auto f = v.loadMemory("when in the summer\n\rasdf\n\rI find myself wondering");
+            src::SourceVault v;                      //    0123456789012345678 9 01234 5 67890
+            auto f = v.loadMemory("when in the summer\r\nasdf\r\nI find myself wondering");
             auto l = src::LocRange(*f, 21, 2);
             diag::make(diag::Type::TEST_Warn, l);
             auto log = Log::testOnly_disableTestEndPoint();
@@ -238,7 +238,7 @@ namespace test {
             auto b = util::cmd::manip::Builder();
             b.textColorBrightBlue("In Memory (2|2)").text(": ").textColorBrightYellow("L0996")
                 .text(": Test warning").reset().text("\n")
-                .textColorDarkGrey("0002 |").text(" asdf\n")
+                .textColorDarkGrey("   2 |").text(" asdf\n")
                 .textColorDarkGrey("     | ").text(" ").textColorBrightGreen("^").textColorBrightMagenta("~");
 
             log->expectOneMessageWhichContains(b.str());

@@ -122,6 +122,38 @@ namespace src {
         return &it->second;
     }
 
+    std::string SourceVault::_stripCarriageReturnAtNewlines(const std::string& str) const {
+        std::string ret;
+        ret.reserve(str.size());
+
+        bool carriageReturnFound = false;
+        for (auto c : str) {
+            if (c == '/r') {
+                if (carriageReturnFound) {
+                    ret.push_back(c);
+                    continue;
+                }
+                else {
+                    carriageReturnFound = true;
+                }
+            }
+            else if (carriageReturnFound) {
+                carriageReturnFound = false;
+                if (c == '\n') {
+                    ret.push_back(c);
+                    continue;
+                }
+                else {
+                    ret.push_back('\r');
+                    // fall-through for current char
+                }
+            }
+            ret.push_back(c);
+        }
+
+        return ret;
+    }
+
     std::optional<FileID> SourceVault::loadFile([[maybe_unused]]const util::fs::Path& path) {
         // load file from disk into memory
         DEBUG_FAIL("Not implemented, also how do I reconcile multiple packages?");
@@ -132,11 +164,12 @@ namespace src {
         ASSERT_IN_PUBLISH(mNextID < 4294967290, "Too many files are being compiled, compile less than 4 billion files please.");
         ASSERT_IN_PUBLISH(str.size() < 4294967290, "Memory file contents exceeds maximum size of 4GB. Break up this file to compile it.");
 
+        std::string contents = _stripCarriageReturnAtNewlines(str);
         mNextID++;
         mFiles.emplace(mNextID, FileEntry{
-            .mNewLineTable = _generateNewLineTable(str),
+            .mNewLineTable = _generateNewLineTable(contents),
             .mID = mNextID,
-            .mContents = str,
+            .mContents = contents,
             .mPath = "In Memory"
         });
         return mNextID;
