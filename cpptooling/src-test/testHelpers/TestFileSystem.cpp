@@ -1,5 +1,5 @@
 
-// Copyright (c) 2025 Andrew Griffin - All Rights Reserved
+// Copyright (c) 2026 Andrew Griffin - All Rights Reserved
 
 #include <functional>
 #include <unordered_set>
