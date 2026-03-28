@@ -24,6 +24,7 @@ kanban-plugin: board
 - [ ] Documentation Comments
 	- `///` will document next object
 	- `//!` will document the current object
+		- Not sure about this. Might remove this or make this a block comment version of above. Maybe file-module docs use a moniker like `--file-docs--` or something
 	- Generates markdown documentation
 - [ ] Source Control Markers
 	- `<<<<<<` (6)

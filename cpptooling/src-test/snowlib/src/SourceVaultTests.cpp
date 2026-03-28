@@ -250,6 +250,7 @@ namespace test {
             std::optional<src::FileID> id = v.loadMemory("\n\n\n1234");
             ASSERT_EQ(1, id);
             auto [l, c] = v.getLineCol({ 1, 100 });
+            (void)l; // fix for unused var
             ah.expectOneMessageWhichContains("Attempting to reach beyond the file's length!");
         }
 

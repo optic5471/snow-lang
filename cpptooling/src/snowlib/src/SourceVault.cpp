@@ -128,7 +128,7 @@ namespace src {
 
         bool carriageReturnFound = false;
         for (auto c : str) {
-            if (c == '/r') {
+            if (c == '\r') {
                 if (carriageReturnFound) {
                     ret.push_back(c);
                     continue;
