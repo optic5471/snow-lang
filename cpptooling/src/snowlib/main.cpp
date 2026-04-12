@@ -4,19 +4,19 @@
 #include <snowlib/main.hpp>
 
 #include <snowlib/diag/Desc.hpp>
-#include <snowlib/ServiceLocator.hpp>
 #include <snowlib/src/Project.hpp>
 #include <snowlib/src/SourceVault.hpp>
+#include <util/ServiceLocator.hpp>
 
 template<>
 src::SourceVault* ServiceLocator<src::SourceVault>::mService = nullptr;
 
-template<>
-src::Project* ServiceLocator<src::Project>::mService = nullptr;
+//template<>
+//src::Project* ServiceLocator<src::Project>::mService = nullptr;
 
 bool snowlibinit() {
     diag::Desc::init();
     ServiceLocator<src::SourceVault>::init();
-    ServiceLocator<src::Project>::init();
+    //ServiceLocator<src::Project>::init();
     return true;
 }

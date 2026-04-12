@@ -40,12 +40,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Design/V0.0.3 - Classes.md",
+                "file": "Design/V0.0.1 - Functions and Variables.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "V0.0.3 - Classes"
+              "title": "V0.0.1 - Functions and Variables"
             }
           }
         ]
@@ -213,17 +213,17 @@
   },
   "active": "19ef1b51e8d173c1",
   "lastOpenFiles": [
+    "Clang Compiler Interesting Notes.md",
+    "Ticket Board.md",
+    "Design/V0.0.1 - Functions and Variables.md",
     "Design/V0.0.3 - Classes.md",
     "Design/V0.0.5 - Interfaces.md",
     "Design/V0.0.4 - Enums.md",
-    "Design/V0.0.1 - Functions and Variables.md",
     "Design/V0.0.2 - Better Functions and Generics.md",
     "Design/V0.0.6 - Modules and Packages and Files, Oh My!.md",
-    "Ticket Board.md",
     "Experimental/Package and Project and Compilation.md",
     "Examples/Advent of Code 2025 Day 1.md",
     "Experimental",
-    "Clang Compiler Interesting Notes.md",
     "Design/V0.0.7 - Unsafe, Memory Management, The Std Library.md",
     "Design/V0.1.0 - Look Mom! I'm A Real Language!.md",
     "Overview.md",

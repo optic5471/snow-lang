@@ -26,18 +26,23 @@ kanban-plugin: board
 	- `//!` will document the current object
 		- Not sure about this. Might remove this or make this a block comment version of above. Maybe file-module docs use a moniker like `--file-docs--` or something
 	- Generates markdown documentation
+- [ ] BLOCKED | Compiler flags
+	- Decide on these, dont have too many
+	- Isnt command line based, is actually a part of the package step, so putting this off
+
+
+## Current Feature Work
+
+- [ ] Command line arguments
+	- Logging level to be printed, debug flags like print the ast to a file, tokens, ...
+- [ ] Lexer produces all token types, and a Token Emitter
+	- Supports all tokens that the language uses
+	- Not sure what Token Emitter is, so just leaving it out for now
 - [ ] Source Control Markers
 	- `<<<<<<` (6)
 	- `======` (6)
 	- `>>>>>>` (6)
 	- These markers should be considered errors (or high class warnings)
-
-
-## Current Feature Work
-
-- [ ] Custom Logger, supports verbosity
-- [ ] Compiler flags
-- [ ] Lexer produces all token types, and a Token Emitter
 - [ ] V0.0.1: Parser Stage 1:
 	- Open files as imports come through
 	- Compilations go into a task list, task list is threaded, each file is a task
@@ -55,17 +60,19 @@ kanban-plugin: board
 	- Can use anything in std, and additional packages provided, nothing else
 	- This point should be able to now build projects for testing and receive ouput
 - [ ] Finish V0.0.1
+	- Can actually execute some code now. Restricted to the interpreter, handles only default `package` style
 
 
 ## Active
 
-- [ ] Change to clang style file loading and locs
-	- Change diags
-	- Redo lex and token
+- [ ] Custom Logger, supports verbosity
 
 
 ## Complete
 
+- [ ] Change to clang style file loading and locs
+	- ~Change diags~
+	- ~Redo lex and token~ // moved to its own ticket
 
 
 
