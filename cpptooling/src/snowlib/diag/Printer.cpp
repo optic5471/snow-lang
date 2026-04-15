@@ -4,9 +4,11 @@
 #include <snowlib/diag/Printer.hpp>
 
 #include <snowlib/diag/Desc.hpp>
+#include <snowlib/diag/DiagLogger.hpp>
 #include <snowlib/diag/StageLevel.hpp>
 #include <snowlib/diag/Type.hpp>
 #include <util/cmd/manip.hpp>
+#include <util/ServiceLocator.hpp>
 
 namespace diag {
     std::string syntaxHighlight(const std::string& src) {
@@ -166,7 +168,7 @@ namespace diag {
                 const src::FileEntry* file = src::SourceVault::fetch().tryGetFileData(*fileData);
                 if (!file) {
                     DEBUG_FAIL("Trying to diag against an empty file");
-                    Log::error("Attempting to create a diag from an unknown file");
+                    ServiceLocator<DiagLogger>::fetch().writeError("Attempting to create a diag from an unknown file");
                     return;
                 }
 
@@ -318,22 +320,19 @@ namespace diag {
             // finally log
             switch (diagDesc.mLevel) {
                 case Level::Error: {
-                    Log::error(finalMsg);
+                    ServiceLocator<DiagLogger>::fetch().writeError(finalMsg);
                     break;
                 }
                 case Level::Fatal: {
-                    Log::error(finalMsg);
+                    ServiceLocator<DiagLogger>::fetch().writeError(finalMsg);
                     abort(); // Fatal errors should kill the app, including tests
                     break;
                 }
                 case Level::Supplemental:
-                case Level::Info: {
-                    Log::log(finalMsg);
-                    break;
-                }
+                case Level::Info:
                 case Level::Warn:
                 case Level::Suggest: {
-                    Log::warn(finalMsg);
+                    ServiceLocator<DiagLogger>::fetch().writeInfo(finalMsg);
                     break;
                 }
                 default: {

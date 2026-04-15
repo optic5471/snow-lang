@@ -6,7 +6,7 @@
 #include <util/Log.hpp>
 
 int main(int argc, const char** argv) {
-    snowlibinit();
+    //snowlibinit();
 
     util::cmd::ArgParse argparse("snowc is not implemented");
     util::cmd::ParseResult result = argparse.parse(argc, argv);

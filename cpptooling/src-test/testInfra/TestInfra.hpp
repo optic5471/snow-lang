@@ -727,14 +727,14 @@ namespace TestInfra {
             std::vector<TestData> testsToRun;
             Internal::ITestClassNode* testClassNode = Internal::TestInfraCollections::sTestClassListHead;
             while (testClassNode) {
-                if (static_cast<char>(testClassNode->mTags.hasTag(Tags::Ignore)) > 0) {
+                if (testClassNode->mTags.hasTag(Tags::Ignore)) {
                     testClassNode = testClassNode->mNext;
                     continue; // ignored tests cannot run in "run all tests" mode
                 }
                 testsToRun.emplace_back(TestData(testClassNode));
                 Internal::ITestFuncNode* testFuncNode = testClassNode->getFuncList();
                 while (testFuncNode) {
-                    if (static_cast<char>(testFuncNode->mTags.hasTag(Tags::Ignore)) > 0) {
+                    if (testFuncNode->mTags.hasTag(Tags::Ignore)) {
                         testFuncNode = testFuncNode->mNext;
                         continue; // ignored tests cannot run in "run all tests" mode
                     }
@@ -764,6 +764,14 @@ namespace TestInfra {
                 logger = std::make_unique<Internal::CoutLogHook>();
             }
 
+            bool tagsHasIgnore = false;
+            for (auto&& tag : aTags) {
+                if (tag == Tags::Ignore) {
+                    tagsHasIgnore = true;
+                    break;
+                }
+            }
+
             size_t testCount = 0;
             std::vector<TestData> testsToRun;
             Internal::ITestClassNode* testClassNode = Internal::TestInfraCollections::sTestClassListHead;
@@ -772,6 +780,12 @@ namespace TestInfra {
                 if (testClassNode->mTags.hasTag(aTags)) {
                     Internal::ITestFuncNode* testFuncNode = testClassNode->getFuncList();
                     while (testFuncNode) {
+                        // if the test tag was a class node, then we ignore any ignored functions
+                        // a later tag might include this ignored test, but this caught in the function block below
+                        if (testFuncNode->mTags.hasTag(Tags::Ignore) && !tagsHasIgnore) {
+                            testFuncNode = testFuncNode->mNext;
+                            continue;
+                        }
                         testCount++;
                         testsToRun.back().mFuncNodes.emplace_back(testFuncNode);
                         testFuncNode = testFuncNode->mNext;

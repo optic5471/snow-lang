@@ -9,7 +9,7 @@
 
 // This will read directly from argc argv for the commands to run
 int mainAsCommandInput(int argc, const char** argv) {
-    ASSERT_IN_PUBLISH(snowlibinit(), "Failed to initialize internal compiler");
+    ASSERT_IN_PUBLISH(testonly_snowlibinit(), "Failed to initialize internal compiler");
     util::cmd::ArgParse argparse = test::makeArgParse();
     util::cmd::ParseResult result = argparse.parse(argc, argv);
     if (result.mFailed) {
@@ -53,7 +53,7 @@ util::cmd::ParseResult exitApp(const util::cmd::ParsedCmdLine&) {
 }
 
 int mainAsStandingApp(const char* exeName) {
-    ASSERT_IN_PUBLISH(snowlibinit(), "Failed to initialize internal compiler");
+    ASSERT_IN_PUBLISH(testonly_snowlibinit(), "Failed to initialize internal compiler");
     util::cmd::ArgParse argparse("Runs tests on the snow compiler");
     test::bindArgParse(argparse);
     argparse.addSubCommand(util::cmd::Command("exit", &exitApp, "Exit the application"));
