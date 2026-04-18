@@ -25,24 +25,31 @@ namespace src {
         };
 
         util::fs::Path mRootPath;
-        std::string mPackageName;
+        util::HashedString mPackageName;
         std::unordered_map<util::HashedString, std::shared_ptr<Module>> mModules;
+        std::shared_ptr<Module> mRootModule;
+        BuildData mBuildData;
 
-        bool _parseStatement();
-        bool _parseBlock();
+        bool _parseStatement(PackageType type, const std::string& name);
+        bool _parseBlock(PackageType type, const std::string& name);
 
     public:
         Package(util::fs::Path rootFile);
-        const std::string& name() const;
+        const util::HashedString& name() const;
 
         // opens the root file, finds the package statement, run the block or setup the statement
         bool executePackage();
 
         // attempts to find a module in this package given the path
+        // In a package, you dont need the package name (well its optional)
+        // In the case that is is not used, it should be automatically added path by the CALLEE
         const std::shared_ptr<Module> tryResolveModule(const std::string& modulePath) const;
-        const std::shared_ptr<Module> tryResolveModule(const ModulePath& modulePath) const;
+        const std::shared_ptr<Module> tryResolveModule(const ModulePath& modulePath, size_t pathIndex) const;
 
-        // modules contain other modules, this is for the root package modules of which there are very few (maybe just one)
-        void addRootModule(std::shared_ptr<Module> module);
+        void addModule(std::shared_ptr<Module> module);
+
+#ifdef TEST_ENABLED
+        Package(const std::string& name, std::shared_ptr<Module> rootModule);
+#endif
     };
 }

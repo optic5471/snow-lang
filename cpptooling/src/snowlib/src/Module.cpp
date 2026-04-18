@@ -2,10 +2,12 @@
 // Copyright (c) 2026 Andrew Griffin - All Rights Reserved
 
 #include <snowlib/src/Module.hpp>
+#include <snowlib/src/ModulePath.hpp>
 
 namespace src {
-    Module::Module(Loc loc, const std::string& name)
+    Module::Module(Loc loc, const std::string& name, ModuleType type)
         : mLoc(loc)
+        , mType(type)
         , mName(name) {
     }
 
@@ -29,18 +31,15 @@ namespace src {
         return mSubModules;
     }
 
-    std::shared_ptr<Module> Module::getSubModule(const util::HashedString &moduleName) {
-        if (auto it = mSubModules.find(moduleName); it != mSubModules.end()) {
-            return it->second;
-        }
-        return nullptr;
-    }
-
     const Loc &Module::getLoc() const {
         return mLoc;
     }
 
     const std::string &Module::getName() const {
         return mName;
+    }
+
+    ModuleType Module::getType() const {
+        return mType;
     }
 }

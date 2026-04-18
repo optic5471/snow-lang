@@ -14,25 +14,30 @@ namespace ast {
 }
 
 namespace src {
+    struct ModulePath;
+
+    enum class ModuleType : char {
+        FileScope,
+        Submodule
+    };
+
     class Module {
-        // points at the first character inside the module (maybe whitespace).
-        // For a file, this is the beginning of the file
-        // For a submodule in a file, this is the character after {.
-        // If this points at }, then this is an empty module (not valid for file)
+        // Points at the first character in the file, or at the module name
         Loc mLoc;
+        ModuleType mType;
         std::string mName;
         std::shared_ptr<ast::BaseNode> mAst;
         std::unordered_map<util::HashedString, std::shared_ptr<Module>> mSubModules;
 
     public:
-        Module(Loc loc, const std::string& name);
+        Module(Loc loc, const std::string& name, ModuleType type);
         void setAstRoot(std::shared_ptr<ast::BaseNode> ast);
         std::shared_ptr<ast::BaseNode>& getAst();
         const std::shared_ptr<ast::BaseNode>& getAst() const;
         void addSubModule(std::shared_ptr<Module> subModule);
         const std::unordered_map<util::HashedString, std::shared_ptr<Module>>& getSubModules() const;
-        std::shared_ptr<Module> getSubModule(const util::HashedString& moduleName);
         const Loc& getLoc() const;
         const std::string& getName() const;
+        ModuleType getType() const;
     };
 }

@@ -7,7 +7,7 @@
 #include <util/SpinLock.hpp>
 
 namespace diag {
-    enum class LogLevel {
+    enum class LogLevel : char {
         ErrorsOnly,
         Default,
         Verbose

@@ -9,21 +9,13 @@
 #include <snowlib/src/SourceVault.hpp>
 #include <util/ServiceLocator.hpp>
 
-template<>
-src::SourceVault* ServiceLocator<src::SourceVault>::mService = nullptr;
-template<>
-diag::DiagLogger* ServiceLocator<diag::DiagLogger>::mService = nullptr;
-
-//template<>
-//src::Project* ServiceLocator<src::Project>::mService = nullptr;
-
-bool snowlibinit(
-    std::optional<util::fs::Path> pathToLogFile,
-    diag::LogLevel logLevel) {
+bool snowlibinit(SnowArgs args,
+    std::optional<util::fs::Path> pathToLogFile) {
 
     diag::Desc::init();
     ServiceLocator<src::SourceVault>::init();
-    ServiceLocator<diag::DiagLogger>::init(pathToLogFile, logLevel);
+    ServiceLocator<diag::DiagLogger>::init(pathToLogFile, args.logLevel);
+    ServiceLocator<SnowArgs>::init(std::move(args));
     //ServiceLocator<src::Project>::init();
     return true;
 }
@@ -31,9 +23,6 @@ bool snowlibinit(
 #ifdef TEST_ENABLED
 bool testonly_snowlibinit() {
     diag::Desc::init();
-    ServiceLocator<src::SourceVault>::init();
-    ServiceLocator<diag::DiagLogger>::init();
-    //ServiceLocator<src::Project>::init();
     return true;
 }
 #endif

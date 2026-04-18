@@ -4,9 +4,9 @@
 #pragma once
 
 #include <snowlib/diag/DiagLogger.hpp>
+#include <snowlib/SnowArgs.hpp>
 
-bool snowlibinit(std::optional<util::fs::Path> pathToLogFile = {},
-    diag::LogLevel logLevel = diag::LogLevel::Default);
+bool snowlibinit(SnowArgs args, std::optional<util::fs::Path> pathToLogFile = {});
 
 #ifdef TEST_ENABLED
 bool testonly_snowlibinit();

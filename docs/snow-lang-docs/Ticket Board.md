@@ -33,11 +33,6 @@ kanban-plugin: board
 
 ## Current Feature Work
 
-- [ ] Command line arguments
-	- Logging level to be printed, debug flags like print the ast to a file, tokens, ...
-- [ ] Lexer produces all token types, and a Token Emitter
-	- Supports all tokens that the language uses
-	- Not sure what Token Emitter is, so just leaving it out for now
 - [ ] Source Control Markers
 	- `<<<<<<` (6)
 	- `======` (6)
@@ -65,11 +60,16 @@ kanban-plugin: board
 
 ## Active
 
-- [ ] Custom Logger, supports verbosity
+- [ ] Lexer produces all token types, and a Token Emitter
+	- Supports all tokens that the language uses
+	- Not sure what Token Emitter is, so just leaving it out for now
 
 
 ## Complete
 
+- [ ] Command line arguments
+	- Logging level to be printed, debug flags like print the ast to a file, tokens, ...
+- [ ] Custom Logger, supports verbosity
 - [ ] Change to clang style file loading and locs
 	- ~Change diags~
 	- ~Redo lex and token~ // moved to its own ticket

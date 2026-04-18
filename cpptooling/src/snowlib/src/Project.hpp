@@ -16,7 +16,7 @@ namespace src {
         std::shared_ptr<Package> mInvokedPackage;
 
     public:
-        Project();
+        Project() = default;
         void setInvokedPackage(std::shared_ptr<Package> package);
         std::shared_ptr<Package> getInvokedPackage();
         const std::unordered_map<util::HashedString, std::shared_ptr<Package>>& getPackages() const;
