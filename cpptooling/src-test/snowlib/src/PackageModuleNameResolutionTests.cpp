@@ -13,7 +13,7 @@ namespace test {
                 std::make_shared<src::Module>(
                     src::Loc(0,0),
                     "package",
-                    src::ModuleType::FileScope
+                    src::ModuleType::File
                 ));
             EXPECT_NULL(package.tryResolveModule(""));
         }
@@ -23,7 +23,7 @@ namespace test {
                 std::make_shared<src::Module>(
                     src::Loc(0,0),
                     "package",
-                    src::ModuleType::FileScope
+                    src::ModuleType::File
                 ));
 
             auto mod = package.tryResolveModule("package");
@@ -36,13 +36,13 @@ namespace test {
                 std::make_shared<src::Module>(
                     src::Loc(0,0),
                     "package",
-                    src::ModuleType::FileScope
+                    src::ModuleType::File
                 )
             );
             package.addModule(std::make_shared<src::Module>(
                 src::Loc(0,0),
                 "mod",
-                src::ModuleType::FileScope
+                src::ModuleType::File
             ));
 
             auto mod = package.tryResolveModule("package/mod");
@@ -55,14 +55,14 @@ namespace test {
                 std::make_shared<src::Module>(
                     src::Loc(0,0),
                     "package",
-                    src::ModuleType::FileScope
+                    src::ModuleType::File
                 )
             );
 
             auto module = std::make_shared<src::Module>(
                 src::Loc(0,0),
                 "mod",
-                src::ModuleType::FileScope
+                src::ModuleType::File
             );
             package.addModule(module);
 
@@ -82,14 +82,14 @@ namespace test {
                 std::make_shared<src::Module>(
                     src::Loc(0,0),
                     "a",
-                    src::ModuleType::FileScope
+                    src::ModuleType::File
                 )
             );
 
             auto b = std::make_shared<src::Module>(
                 src::Loc(0,0),
                 "b",
-                src::ModuleType::FileScope
+                src::ModuleType::File
             );
             package.addModule(b);
 
@@ -124,7 +124,7 @@ namespace test {
                 std::make_shared<src::Module>(
                     src::Loc(0,0),
                     "a",
-                    src::ModuleType::FileScope
+                    src::ModuleType::File
                 )
             );
 
@@ -136,13 +136,13 @@ namespace test {
                 std::make_shared<src::Module>(
                     src::Loc(0,0),
                     "package",
-                    src::ModuleType::FileScope
+                    src::ModuleType::File
                 )
             );
             package.addModule(std::make_shared<src::Module>(
                 src::Loc(0,0),
                 "mod",
-                src::ModuleType::FileScope
+                src::ModuleType::File
             ));
 
             EXPECT_NULL(package.tryResolveModule("package/mod/sub"));
@@ -153,14 +153,14 @@ namespace test {
                 std::make_shared<src::Module>(
                     src::Loc(0,0),
                     "a",
-                    src::ModuleType::FileScope
+                    src::ModuleType::File
                 )
             );
 
             auto b = std::make_shared<src::Module>(
                 src::Loc(0,0),
                 "b",
-                src::ModuleType::FileScope
+                src::ModuleType::File
             );
             package.addModule(b);
 
@@ -186,6 +186,25 @@ namespace test {
             k->addSubModule(l);
 
             EXPECT_NULL(package.tryResolveModule("a/b/c/d/e/f/g/h/i/j/k/l/m"));
+        }
+
+        TEST(ModuleNameRes_FolderModules_WorksAsExpected) {
+            src::Package package("a",
+                std::make_shared<src::Module>(
+                    src::Loc(0,0),
+                    "a",
+                    src::ModuleType::File
+                )
+            );
+
+            auto b = std::make_shared<src::Module>(std::nullopt, "b", src::ModuleType::Folder);
+            auto c = std::make_shared<src::Module>(src::Loc(0, 0), "c", src::ModuleType::File);
+            b->addSubModule(c);
+            package.addModule(b);
+
+            auto mod = package.tryResolveModule("a/b/c");
+            ASSERT_NOTNULL(mod);
+            EXPECT_EQ("c", mod->getName());
         }
     };
 }
