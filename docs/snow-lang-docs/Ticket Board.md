@@ -33,9 +33,6 @@ kanban-plugin: board
 
 ## Current Feature Work
 
-- [ ] Lexer produces all token types, and a Token Emitter
-	- Supports all tokens that the language uses
-	- Not sure what Token Emitter is, so just leaving it out for now
 - [ ] Source Control Markers
 	- `<<<<<<` (6)
 	- `======` (6)
@@ -63,11 +60,14 @@ kanban-plugin: board
 
 ## Active
 
-- [ ] Find out how to handle folders and module traversal, I have submodules figured out but not actual folders
+- [ ] Lexer produces all token types, and a Token Emitter
+	- Supports all tokens that the language uses
+	- Not sure what Token Emitter is, so just leaving it out for now
 
 
 ## Complete
 
+- [ ] Find out how to handle folders and module traversal, I have submodules figured out but not actual folders
 - [ ] Command line arguments
 	- Logging level to be printed, debug flags like print the ast to a file, tokens, ...
 - [ ] Custom Logger, supports verbosity

@@ -6,22 +6,44 @@
 #include <optional>
 #include <string>
 
-namespace diag {
-    enum class LogLevel : char;
+#include <snowlib/diag/DiagLogger.hpp>
+#include <util/EnumBitset.hpp>
+
+namespace lex {
+    class Token;
+}
+
+namespace ast {
+    class BaseNode;
 }
 
 enum class CompilerDebugQuery : char {
     None = 0,
-    Ast = 1 << 0,
-    Tokens = 1 << 1,
-    Types = 1 << 2
+    Ast,
+    Tokens,
+    Types,
+
+    _count
 };
 
 struct SnowArgs {
-    diag::LogLevel logLevel;
-    bool forceCompilingDebug = false;
-    bool allWarningsAreErrors = false;
-    bool timeCompilation = false;
-    char compilerDebugQuery = 0;
-    std::optional<std::string> compilerDebugQueryFile;
+    struct CompilerArgs {
+        diag::LogLevel logLevel = diag::LogLevel::Default;
+        bool forceCompilingDebug = false;
+        bool allWarningsAreErrors = false;
+        bool timeCompilation = false;
+    };
+
+    struct DebugCompilerArgs {
+        util::EnumBitset<CompilerDebugQuery> compilerDebugQuery;
+        std::optional<std::string> compilerDebugQueryFile;
+
+        // outputs
+        std::vector<lex::Token> mOutputTokens;
+        std::shared_ptr<ast::BaseNode> mAst;
+        //std::vector<parse::Type> mTypes;
+    };
+
+    CompilerArgs mCompilerArgs;
+    DebugCompilerArgs mDebugCompilerArgs;
 };

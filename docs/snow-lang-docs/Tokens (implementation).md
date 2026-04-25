@@ -1,0 +1,145 @@
+# Symbols
+- ?
+- )
+- (
+- :
+- {
+- }
+- \[
+- ]
+- =
+- +
+- -
+- \*
+- &
+- ^
+- %
+- $
+- \# 
+- @
+- !
+- ~
+- \`
+- |
+- "
+- '
+- ;
+- /
+- .
+- ,
+- >
+- <
+- .. (exclusive range)
+- ..= (inclusive range)
+- _ (the empty variable name)
+- // (until end of line)
+- /// (until end of line)
+- /* (until matching \*/)
+- //! (until matching !//)
+- ... (variadic)
+# Keywords
+- alias
+- arptr
+- as
+- async
+- await
+- binop
+- bool
+- break
+- class
+- `__COMPILER_VENDOR__`
+- `__COMPILER_VERSION__`
+- continue
+- copy
+- defer
+- deinit
+- do
+- dynlib
+- else
+- enum
+- exe
+- export
+- f32
+- f64
+- fallthrough
+- `__FILE__`
+- `__FILE_PATH__`
+- `__FILE_PATH_FULL__`
+- fn
+- foreach
+- friend
+- `__FULL_FUNCTION__`
+- `__FUNCTION__`
+- generic
+- has
+- i8
+- i16
+- i32
+- i64
+- if
+- implements
+- import
+- in
+- inf
+- init
+- interface
+- is
+- let
+- lib
+- `__LINE__`
+- module
+- `__MODULE__`
+- move
+- mut
+- nan
+- otherwise
+- `__PACKAGE__`
+- package
+- panic
+- postop
+- preop
+- ptr
+- pub
+- ref
+- return
+- rune
+- self
+- Self
+- `__SNOW_VERSION__`
+- static
+- string
+- switch
+- `__TIMESTAMP__`
+- typeof
+- u8
+- u16
+- u32
+- u64
+- undefined
+- unsafe
+- use
+- where
+- while
+- yield
+# Additional parsing
+- Integers
+	- `0u`: unsigned value of `u32` or `u64` depending on size
+	- `0i`: signed value of `i32` or `i64` depending on size
+	- `0b`: restricts to 0 or 1 and reads as binary into `u32` or `u64` depending on size
+	- `0x`: restricts to 0-9A-Fa-f and reads as hex into `u32` or `u64` depending on size
+	- Values may include `_` and `'` in the middle of them to provide separation. This must come after the first number or after prefix
+- Rune
+	- Escapes with `\`
+		- `\n`: newline
+		- `\'`: single quote (only required in single quoted rune)
+		- `\"`: double quote (only required in double quoted rune)
+		- `\\`: back slash
+		- `\r`: carriage return
+		- `\t`: horizontal tab
+	- Single quote parsed
+- String
+	- `"asdf"` parsed
+	- Handle escapes like Rune
+	- `@"asdf"@` and `@A"asdf"A@` (with any letter between the @ and ") are WYSIWYG strings
+	- \`asdf\` are formatting strings, use `${varname}` to have the variable emplaced at that point in the string, escape the $ to print the `${}` section
+		- Part of this will happen after we have types, probably just parse it as a string itself and maybe set a flag during lex

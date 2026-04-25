@@ -11,22 +11,35 @@ namespace parse {
     IntegerLiteral::IntegerLiteral(size_t value, bool positive)
         : mValue(value)
         , mPositive(positive) {
-        if (isU64() && !mPositive) {
-            DEBUG_FAIL("An impossible number has been saved, too large for 64 bits");
+        if ((isU32() || isU64()) && !mPositive) {
+            DEBUG_FAIL("Unsigned values cannot be negative, or a u64 being negative is more than 64 bits");
         }
     }
 
     bool IntegerLiteral::isU32() const {
-        return mValue > std::numeric_limits<int32_t>::max() &&
-            mValue <= std::numeric_limits<uint32_t>::max();
+        return mValue > 2147483647 && mValue <= 4294967295 && mPositive;
     }
 
     bool IntegerLiteral::isU64() const {
-        return mValue > std::numeric_limits<uint32_t>::max();
+        return mValue > 9223372036854775807U && mPositive;
     }
 
     bool IntegerLiteral::isI32() const {
-        return mValue <= std::numeric_limits<int32_t>::max();
+        if (mPositive) {
+            return mValue <= 2147483647;
+        }
+        else {
+            return mValue <= 2147483648;
+        }
+    }
+
+    bool IntegerLiteral::isI64() const {
+        if (mPositive) {
+            return mValue <= 9223372036854775807U;
+        }
+        else {
+            return mValue <= 9223372036854775808U;
+        }
     }
 
     uint32_t IntegerLiteral::asU32() const {
@@ -34,7 +47,15 @@ namespace parse {
     }
 
     uint64_t IntegerLiteral::asU64() const {
-        return static_cast<uint64_t>(mValue);
+        return mValue;
+    }
+
+    int64_t IntegerLiteral::asI64() const {
+        int64_t v = static_cast<int64_t>(mValue);
+        if (mPositive) {
+            return v;
+        }
+        return -v;
     }
 
     int32_t IntegerLiteral::asI32() const {
